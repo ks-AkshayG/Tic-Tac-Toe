@@ -1,5 +1,3 @@
-import Score from "./component/Score"
-import CurrentTurn from "./component/CurrentTurn"
 import GameBoard from "./component/GameBoard"
 
 function App() {

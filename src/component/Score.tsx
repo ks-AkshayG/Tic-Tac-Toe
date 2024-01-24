@@ -1,5 +1,3 @@
-import React from 'react'
-
 type scoreProps = {
   character: string
   value: number

@@ -1,5 +1,3 @@
-import React from 'react'
-
 type valueProps = {
     value: string | null
     onClick: () => void
