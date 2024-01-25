@@ -1,8 +1,12 @@
-import {useState, useEffect} from 'react'
+import { useState, useEffect } from 'react'
+import { useLocalStorage } from 'usehooks-ts'
 import SingleSquareBoard from './SingleSquareBoard'
 import CurrentTurn from "./CurrentTurn"
 import Chances from './Chances'
 import Score from './Score'
+import MenuButton from './MenuButton'
+
+import MenuIcon from '../assets/bx-menu.svg'
 
 type initialCharacterProps = {
   id: number
@@ -34,53 +38,42 @@ let initialO: initialCharacterProps = [
 ]
 let initialX: initialCharacterProps = [
   {
+    id: 1,
+    value: 'X'
+  },
+  {
+    id: 2,
+    value: 'X'
+  },
+  {
+    id: 3,
+    value: 'X'
+  },
+  {
+    id: 4,
+    value: 'X'
+  },
+  {
     id: 5,
-    value: 'X'
-  },
-  {
-    id: 6,
-    value: 'X'
-  },
-  {
-    id: 7,
-    value: 'X'
-  },
-  {
-    id: 8,
-    value: 'X'
-  },
-  {
-    id: 9,
     value: 'X'
   }
 ]
 
-console.log(initialO)
-// let initialX: string[] = new Array(5).fill('X')
-
 const GameBoard = () => {
 
-  const [state, setState] = useState(initialValue)
-  const [turnO, setTurnO] = useState(true)
-  const [winner, setWinner] = useState('')
-  const [countO, setCountO] = useState(initialO);
-  const [countX, setCountX] = useState(initialX);
-  const [countScoreO, setCountScoreO] = useState(0);
-  const [countScoreX, setCountScoreX] = useState(0);
-  const [drawCount, setDrawCount] = useState(9)
+  const [menu, setMenu] = useState(false)
 
-  // console.log(countO)
+  const [winReload, setWinReload] = useLocalStorage('winO', 0)
 
-  useEffect(() => {
-    for(let i = 0; i < winConditions.length; i++){
-      let [a,b,c] = winConditions[i]
-      if((state[a] !== '') && (state[a] === state[b]) && (state[a] === state[c])){
-        setWinner(`Congratulations! ${state[a]} Won`)
-        if(state[a] === 'O') setCountScoreO(prevCount => prevCount + 1)
-        if(state[a] === 'X') setCountScoreX(prevCount => prevCount + 1)
-      }
-    }
-  },[turnO])
+  const [state, setState] = useLocalStorage('state', initialValue)
+  const [turnO, setTurnO] = useLocalStorage('tornO', true)
+  const [winner, setWinner] = useLocalStorage('winner', '')
+  const [countO, setCountO] = useLocalStorage('countO', initialO);
+  const [countX, setCountX] = useLocalStorage('countX', initialX);
+  const [countScoreO, setCountScoreO] = useLocalStorage('countScoreO', 0);
+  const [countScoreX, setCountScoreX] = useLocalStorage('countScoreX', 0);
+  const [countScoreDraw, setCountScoreDraw] = useLocalStorage('countScoreDraw', 0)
+  const [drawCountState, setDrawCountState] = useLocalStorage('drawCountState', 9)
 
   let winConditions = [
     [0,1,2],
@@ -93,7 +86,43 @@ const GameBoard = () => {
     [2,4,6]
   ]
 
-  let handleClick = (i: number) => {
+  let character: string = ''
+  
+  const handleScore = () => {
+      for(let i = 0; i < winConditions.length; i++){
+        let [a,b,c] = winConditions[i]
+        if((state[a] !== '') && (state[a] === state[b]) && (state[a] === state[c])){
+          setWinner(`Congratulations! ${state[a]} Won`)
+          character = state[a]
+
+          return 'done'
+        }
+      }
+      return ''
+  }
+
+  let handleLocalstorageScore = () => {
+    let score = handleScore()
+    if(score === 'done'){
+
+      if(winReload === 0){
+        if(character === 'O') setCountScoreO(prevCount => prevCount + 1) 
+        if(character === 'X') setCountScoreX(prevCount => prevCount + 1)
+        setWinReload(1)
+      }
+    }
+    if((drawCountState === 0) && (winner === '')) {
+
+      setCountScoreDraw(prevState => prevState + 1)
+      setDrawCountState(10)
+    } 
+  }
+  
+  useEffect(() => {
+    handleLocalstorageScore()
+  }, [turnO])
+
+  let handleClick = (i: number, e: number ) => {
   
     if(state[i] !== "") return
     if(winner !== "") return
@@ -102,42 +131,56 @@ const GameBoard = () => {
       let newValueArray = [...state]
       newValueArray[i] = 'O'
       setState(newValueArray)
-      setTurnO(false)
+      setTurnO(prevState => !prevState)
       let newCountO = [...countO]
       newCountO.pop()
       setCountO(newCountO)
-      setDrawCount(prevCount => prevCount - 1)
-    }else if(!turnO){
+      setDrawCountState(prevCount => prevCount - 1)
+    }else if(!turnO && (e == 2)){
       let newValueArray = [...state]
       newValueArray[i] = 'X'
       setState(newValueArray)
-      setTurnO(true)
+      setTurnO(prevState => !prevState)
       let newCountX = [...countX]
       newCountX.pop()
       setCountX(newCountX)
-      setDrawCount(prevCount => prevCount - 1)
+      setDrawCountState(prevCount => prevCount - 1)
     }
+  }
+
+  let handleMenu = () => {
+    setMenu(prevState => !prevState)
   }
 
   let currentTurn = turnO ? "Current Turn - O" : "Current Turn - X"
 
   let winnerGreet = winner !== '' ? winner : currentTurn
   
-  if((drawCount === 0) && (winner === '')) winnerGreet = 'Match Draw'
-
+  if((drawCountState === 10) && (winner === '')) winnerGreet = 'Match Draw'
+  
   let handleReset = () => {
     setState(initialValue)
     setWinner('') 
     setCountO(initialO)
     setCountX(initialX)
-    setDrawCount(9)
-    winnerGreet = winner !== '' ? winner : currentTurn
+    setDrawCountState(9)
+    setWinReload(0)
   }
 
+  let handleClearScore = () => {
+    setCountScoreO(0)
+    setCountScoreX(0)
+    setCountScoreDraw(0)
+    handleReset()
+  }
+  
+  let hidden: React.CSSProperties = (winner === '') ? (drawCountState !== 10) ? {visibility: 'hidden'} : {visibility: 'visible'} : {visibility: 'visible'}
+
   return (
-    <div className=' w-full flex flex-col'>
+    <div className=' w-full flex flex-col justify-center items-center'>
       <div className=' w-full flex flex-row justify-around'>
         <Score character = 'O' value = {countScoreO} />
+        <Score character = 'Draw' value = {countScoreDraw} />
         <Score character = 'X' value = {countScoreX} />
       </div>
       <div className='w-full flex flex-row justify-evenly items-center'>
@@ -149,27 +192,37 @@ const GameBoard = () => {
             <CurrentTurn value = {winnerGreet} />
           </div>
           <div className='flex justify-center items-center flex-row text-[100px]'>
-            <SingleSquareBoard onClick = {() => handleClick(0)} value={state[0]} />
-            <SingleSquareBoard onClick = {() => handleClick(1)} value={state[1]} />
-            <SingleSquareBoard onClick = {() => handleClick(2)} value={state[2]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(0, e.detail)} value={state[0]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(1,e.detail)} value={state[1]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(2,e.detail)} value={state[2]} />
           </div>
           <div className='flex justify-center items-center flex-row text-[100px]'>
-            <SingleSquareBoard onClick = {() => handleClick(3)} value={state[3]} />
-            <SingleSquareBoard onClick = {() => handleClick(4)} value={state[4]} />
-            <SingleSquareBoard onClick = {() => handleClick(5)} value={state[5]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(3,e.detail)} value={state[3]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(4,e.detail)} value={state[4]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(5,e.detail)} value={state[5]} />
           </div>
           <div className='flex justify-center items-center flex-row text-[100px]'>
-            <SingleSquareBoard onClick = {() => handleClick(6)} value={state[6]} />
-            <SingleSquareBoard onClick = {() => handleClick(7)} value={state[7]} />
-            <SingleSquareBoard onClick = {() => handleClick(8)} value={state[8]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(6,e.detail)} value={state[6]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(7,e.detail)} value={state[7]} />
+            <SingleSquareBoard onClick = {(e) => handleClick(8,e.detail)} value={state[8]} />
           </div>
           <div>
-          <button className='border border-green-600 mt-[30px] py-[15px] px-[30px] rounded-3xl hover:bg-green-600 ' onClick={handleReset} >Reset Board</button>
+            <button style={hidden} className='border border-green-600 mt-[30px] py-[15px] px-[30px] rounded-3xl hover:bg-green-600 ' onClick={handleReset} >New Game</button>
           </div>
         </div>
         <div>
           <Chances value = {countX} />
         </div> 
+      </div>
+      <div className=' w-[80vw] text-end flex flex-col justify-end items-end relative'>
+        <div className=' absolute bottom-14'>
+          { 
+            menu && <MenuButton resetBoard = {handleReset} resetGame = {handleClearScore} />
+          }
+        </div>
+        <button onClick={handleMenu}>
+          <img src={MenuIcon} alt="Menu" className='w-[57px]' />
+        </button>
       </div>
     </div>
   )

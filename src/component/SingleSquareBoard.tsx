@@ -1,6 +1,8 @@
+import { MouseEventHandler } from "react"
+
 type valueProps = {
     value: string | null
-    onClick: () => void
+    onClick: MouseEventHandler<HTMLDivElement>
 }
 
 const SingleSquareBoard = ({value, onClick}: valueProps) => {
