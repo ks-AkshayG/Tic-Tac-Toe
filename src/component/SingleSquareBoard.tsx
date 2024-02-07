@@ -1,11 +1,8 @@
-import { MouseEventHandler } from "react"
+import { useSingleBoardContext } from "./Context/SingleBoardContext"
 
-type valueProps = {
-    value: string | null
-    onClick: MouseEventHandler<HTMLDivElement>
-}
+const SingleSquareBoard = () => {
 
-const SingleSquareBoard = ({value, onClick}: valueProps) => {
+  const {onClick, value} = useSingleBoardContext()
 
   return (
     <div className='w-[170px] h-[170px] border-4 border-zinc-900 px-[50px] cursor-pointer' onClick={onClick}>
