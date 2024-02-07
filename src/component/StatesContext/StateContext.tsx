@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react"
-import { initialValue } from "../GameBoard";
+import { initialValue } from "../../constants/ConstantValue";
 
 type StateContextType = {
     state: string[]

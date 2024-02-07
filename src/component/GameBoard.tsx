@@ -6,7 +6,10 @@ import Score from './Score'
 import MenuButton from './MenuButton'
 import MenuIcon from '../assets/bx-menu.svg'
 
-import { atom, useAtom } from 'jotai'
+import { initialValue, initialO, initialX, winConditions } from '../constants/ConstantValue'
+
+import { useAtom } from 'jotai'
+import { initialValueAtom, menuAtom, turn0Atom, winReloadAtom, winnerAtom, countScoreOAtom, countScoreXAtom, countScoreDrawAtom, drawCountStateAtom, initialOAtom, initialXAtom } from '../constants/JotaiAtoms'
 
 import { ChancesContext } from './Context/ChachesContext'
 import { ScoreContext } from './Context/ScoreContext'
@@ -14,125 +17,9 @@ import { CurrentTurnContext } from './Context/CurrentTurnContext'
 import { MenuContext } from './Context/MenuContext'
 import { SingleBoardContext } from './Context/SingleBoardContext'
 
-export type initialCharacterProps = {
-  id: number
-  value: string
-}[]
-
-const intialValueAtom = atom(new Array(9).fill(''))
-const menuAtom = atom(false)
-const turn0Atom = atom(true)
-const winReloadAtom = atom(0)
-const winnerAtom = atom('')
-const countScoreOAtom = atom(0)
-const countScoreXAtom = atom(0)
-const countScoreDrawAtom = atom(0)
-const drawCountStateAtom = atom(9)
-const initialOAtom = atom([
-  {
-    id: 0,
-    value: 'O'
-  },
-  {
-    id: 1,
-    value: 'O'
-  },
-  {
-    id: 2,
-    value: 'O'
-  },
-  {
-    id: 3,
-    value: 'O'
-  },
-  {
-    id: 4,
-    value: 'O'
-  }
-])
-const initialXAtom = atom([
-  {
-    id: 1,
-    value: 'X'
-  },
-  {
-    id: 2,
-    value: 'X'
-  },
-  {
-    id: 3,
-    value: 'X'
-  },
-  {
-    id: 4,
-    value: 'X'
-  },
-  {
-    id: 5,
-    value: 'X'
-  }
-])
-
-export const initialValue: string[] = new Array(9).fill('')
-export const initialO: initialCharacterProps = [
-  {
-    id: 0,
-    value: 'O'
-  },
-  {
-    id: 1,
-    value: 'O'
-  },
-  {
-    id: 2,
-    value: 'O'
-  },
-  {
-    id: 3,
-    value: 'O'
-  },
-  {
-    id: 4,
-    value: 'O'
-  }
-]
-export const initialX: initialCharacterProps = [
-  {
-    id: 1,
-    value: 'X'
-  },
-  {
-    id: 2,
-    value: 'X'
-  },
-  {
-    id: 3,
-    value: 'X'
-  },
-  {
-    id: 4,
-    value: 'X'
-  },
-  {
-    id: 5,
-    value: 'X'
-  }
-]
-
-export const winConditions = [
-  [0,1,2],
-  [3,4,5],
-  [6,7,8],
-  [0,3,6],
-  [1,4,7],
-  [2,5,8],
-  [0,4,8],
-  [2,4,6]
-]
-
 const GameBoard = () => {
 
-  const [state, setState] = useAtom(intialValueAtom)
+  const [state, setState] = useAtom(initialValueAtom)
   const [menu, setMenu] = useAtom(menuAtom)
   const [turnO, setTurnO] = useAtom(turn0Atom)
   const [winReload, setWinReload] = useAtom(winReloadAtom)
@@ -143,7 +30,7 @@ const GameBoard = () => {
   const [countScoreX, setCountScoreX] = useAtom(countScoreXAtom)
   const [countScoreDraw, setCountScoreDraw] = useAtom(countScoreDrawAtom)
   const [drawCountState, setDrawCountState] = useAtom(drawCountStateAtom)
-
+  
   let character: string = ''
   
   const handleScore = () => {

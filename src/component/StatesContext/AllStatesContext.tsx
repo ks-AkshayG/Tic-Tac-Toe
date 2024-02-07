@@ -1,8 +1,5 @@
 import { useState, useContext, createContext } from "react";
-import { initialValue } from "../GameBoard";
-import { initialO } from "../GameBoard";
-import { initialX } from "../GameBoard";
-import { initialCharacterProps } from "../GameBoard";
+import { initialValue, initialO, initialX, initialCharacterProps } from "../../constants/ConstantValue";
 
 type AllStatesContextType = {
     menu: boolean

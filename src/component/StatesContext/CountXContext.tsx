@@ -1,6 +1,5 @@
 import { createContext, useContext, useState } from "react"
-import { initialX } from "../GameBoard";
-import { initialCharacterProps } from "../GameBoard";
+import { initialX, initialCharacterProps } from "../../constants/ConstantValue"
 
 type CountXContextType = {
     countX: initialCharacterProps
