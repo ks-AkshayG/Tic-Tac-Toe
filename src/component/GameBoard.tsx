@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useLocalStorage } from 'usehooks-ts'
+import { useEffect } from 'react'
 import SingleSquareBoard from './SingleSquareBoard'
 import CurrentTurn from "./CurrentTurn"
 import Chances from './Chances'
@@ -7,30 +6,72 @@ import Score from './Score'
 import MenuButton from './MenuButton'
 import MenuIcon from '../assets/bx-menu.svg'
 
+import { atom, useAtom } from 'jotai'
+
 import { ChancesContext } from './Context/ChachesContext'
 import { ScoreContext } from './Context/ScoreContext'
 import { CurrentTurnContext } from './Context/CurrentTurnContext'
 import { MenuContext } from './Context/MenuContext'
 import { SingleBoardContext } from './Context/SingleBoardContext'
 
-// import { useStateStateContext } from './StatesContext/StateContext'
-// import { useStateTurnOContext } from './StatesContext/Turn0Context'
-// import { useStateMenuContext } from './StatesContext/MenuContext'
-// import { useStateWinReloadContext } from './StatesContext/WinReloadContext'
-// import { useStateWinnerContext } from './StatesContext/WinnerContext'
-// import { useStateCountOContext } from './StatesContext/CountOContext'
-// import { useStateCountXContext } from './StatesContext/CountXContext'
-// import { useStateCountScoreOContext } from './StatesContext/CountScoreOContext'
-// import { useStateCountScoreXContext } from './StatesContext/CountScoreXContext'
-// import { useStateCountScoreDrawContext } from './StatesContext/CountScoreDrawContext'
-// import { useStateDrawCountStateContext } from './StatesContext/DrawCountStateContext'
-
-import { useAllStatesContext } from './StatesContext/AllStatesContext'
-
 export type initialCharacterProps = {
   id: number
   value: string
 }[]
+
+const intialValueAtom = atom(new Array(9).fill(''))
+const menuAtom = atom(false)
+const turn0Atom = atom(true)
+const winReloadAtom = atom(0)
+const winnerAtom = atom('')
+const countScoreOAtom = atom(0)
+const countScoreXAtom = atom(0)
+const countScoreDrawAtom = atom(0)
+const drawCountStateAtom = atom(9)
+const initialOAtom = atom([
+  {
+    id: 0,
+    value: 'O'
+  },
+  {
+    id: 1,
+    value: 'O'
+  },
+  {
+    id: 2,
+    value: 'O'
+  },
+  {
+    id: 3,
+    value: 'O'
+  },
+  {
+    id: 4,
+    value: 'O'
+  }
+])
+const initialXAtom = atom([
+  {
+    id: 1,
+    value: 'X'
+  },
+  {
+    id: 2,
+    value: 'X'
+  },
+  {
+    id: 3,
+    value: 'X'
+  },
+  {
+    id: 4,
+    value: 'X'
+  },
+  {
+    id: 5,
+    value: 'X'
+  }
+])
 
 export const initialValue: string[] = new Array(9).fill('')
 export const initialO: initialCharacterProps = [
@@ -91,32 +132,17 @@ export const winConditions = [
 
 const GameBoard = () => {
 
-  const {menu, setMenu, winReload, setWinReload, state, setState, turnO, setTurnO, winner, setWinner, countO, setCountO, countX, setCountX, countScoreO, setCountScoreO, countScoreX, setCountScoreX, countScoreDraw, setCountScoreDraw, drawCountState, setDrawCountState } = useAllStatesContext()
-
-  // const {menu, setMenu} = useStateMenuContext()
-  // const {state, setState} = useStateStateContext()
-  // const {turnO, setTurnO} = useStateTurnOContext()
-  // const {winReload, setWinReload} = useStateWinReloadContext()
-  // const {winner, setWinner} = useStateWinnerContext()
-  // const {countO, setCountO} = useStateCountOContext()
-  // const {countX, setCountX} = useStateCountXContext()
-  // const {countScoreO, setCountScoreO} = useStateCountScoreOContext()
-  // const {countScoreX, setCountScoreX} = useStateCountScoreXContext()
-  // const {countScoreDraw, setCountScoreDraw} = useStateCountScoreDrawContext()
-  // const {drawCountState, setDrawCountState} = useStateDrawCountStateContext()
-
-  
-  // const [menu, setMenu] = useState(false)
-  // const [winReload, setWinReload] = useLocalStorage('winO', 0)
-  // const [state, setState] = useLocalStorage('state', initialValue)
-  // const [turnO, setTurnO] = useLocalStorage('tornO', true)
-  // const [winner, setWinner] = useLocalStorage('winner', '')
-  // const [countO, setCountO] = useLocalStorage('countO', initialO);
-  // const [countX, setCountX] = useLocalStorage('countX', initialX);
-  // const [countScoreO, setCountScoreO] = useLocalStorage('countScoreO', 0);
-  // const [countScoreX, setCountScoreX] = useLocalStorage('countScoreX', 0);
-  // const [countScoreDraw, setCountScoreDraw] = useLocalStorage('countScoreDraw', 0)
-  // const [drawCountState, setDrawCountState] = useLocalStorage('drawCountState', 9)
+  const [state, setState] = useAtom(intialValueAtom)
+  const [menu, setMenu] = useAtom(menuAtom)
+  const [turnO, setTurnO] = useAtom(turn0Atom)
+  const [winReload, setWinReload] = useAtom(winReloadAtom)
+  const [winner, setWinner] = useAtom(winnerAtom)
+  const [countO, setCountO] = useAtom(initialOAtom)
+  const [countX, setCountX] = useAtom(initialXAtom)
+  const [countScoreO, setCountScoreO] = useAtom(countScoreOAtom)
+  const [countScoreX, setCountScoreX] = useAtom(countScoreXAtom)
+  const [countScoreDraw, setCountScoreDraw] = useAtom(countScoreDrawAtom)
+  const [drawCountState, setDrawCountState] = useAtom(drawCountStateAtom)
 
   let character: string = ''
   
