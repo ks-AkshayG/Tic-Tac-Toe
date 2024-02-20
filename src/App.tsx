@@ -16,7 +16,7 @@ function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/tictactoe" element={<Game />} />
+                <Route path="/tictactoe/:GameID" element={<Game />} />
               </Routes>
             </BrowserRouter>
           </QueryClientProvider>

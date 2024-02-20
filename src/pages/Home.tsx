@@ -3,12 +3,13 @@ import { useQuery } from "react-query"
 import { Supabase } from "../config/supabase";
 import { initialO, initialValue, initialX } from "../constants/ConstantValue";
 
-type GetDataResponceType = {
+export type GetDataResponceType = {
     id: number
     created_at: string
     state: string[]
     turnO: boolean
     winReload: number
+    winner: string
     countO: string[]
     countX: string[]
     countScoreO: number
@@ -36,27 +37,34 @@ const Home = () => {
                 drawCountState: 9,
                 currentTurn: 'Current Turn - O'
             })
-            .select()
+            .select() //single
 
         const data = supares.data as GetDataResponceType
         return data
     }
 
-    const { data, refetch } = useQuery('create-game-data', handleCreateData, {
-        enabled: false
+    const { data } = useQuery('create-game-data', handleCreateData, {
+        enabled: true
     })
 
+    
     const handleGetData = async() => {
-        await refetch()
         console.log('created')
+        console.log(data)
     }
 
   return (
     <div>
       <h1 className="w-full text-[70px] text-lime-600">Tic - Tac - Toe</h1>
-      <Link to={`/tictactoe`}>
-        <button className="border border-black py-1 px-3 rounded-xl text-[30px] hover:text-green-600 hover:border-green-600" onClick={handleGetData}>New Game</button>
-      </Link>
+
+      {
+        data?.map((data) => ( //useNavigate
+        <Link to={`/tictactoe/${data.id}`} key={data.id}>
+            <button className="border border-black py-1 px-3 rounded-xl text-[30px] hover:text-green-600 hover:border-green-600" onClick={handleGetData}>New Game</button>
+        </Link>
+        ))
+      }
+      
     </div>
   );
 };
