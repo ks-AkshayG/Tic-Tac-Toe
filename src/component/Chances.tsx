@@ -1,15 +1,17 @@
-import { useChancesContext } from "./Context/ChachesContext"
+type ChancesProps = {
+  chances: string[]
+}
 
-const Chances = () => {
+const Chances = ({chances}: ChancesProps) => {
 
-    const value = useChancesContext()
+    // const value = useChancesContext()
 
     // console.log(value, ' From Chances Component')
 
   return (
     <div className='text-[50px]'>
         {
-            value.map((chance) => <div key={chance.id}>{chance.value}</div>)
+            chances.map((chance, index) => <div key={index}>{chance}</div>)
         }
     </div>
   )

@@ -1,177 +1,210 @@
-import { useEffect } from 'react'
-import SingleSquareBoard from './SingleSquareBoard'
-import CurrentTurn from "./CurrentTurn"
-import Chances from './Chances'
-import Score from './Score'
-import MenuButton from './MenuButton'
-import MenuIcon from '../assets/bx-menu.svg'
+import { useEffect, useState } from "react";
+import SingleSquareBoard from "./SingleSquareBoard";
+import CurrentTurn from "./CurrentTurn";
+import Chances from "./Chances";
+import Score from "./Score";
+import MenuButton from "./MenuButton";
+import MenuIcon from "../assets/bx-menu.svg";
 
-import { initialValue, initialO, initialX, winConditions } from '../constants/ConstantValue'
-
-import { useAtom } from 'jotai'
-import { initialValueAtom, menuAtom, turn0Atom, winReloadAtom, winnerAtom, countScoreOAtom, countScoreXAtom, countScoreDrawAtom, drawCountStateAtom, initialOAtom, initialXAtom } from '../constants/JotaiAtoms'
-
-import { ChancesContext } from './Context/ChachesContext'
-import { ScoreContext } from './Context/ScoreContext'
-import { CurrentTurnContext } from './Context/CurrentTurnContext'
-import { MenuContext } from './Context/MenuContext'
-import { SingleBoardContext } from './Context/SingleBoardContext'
+import {
+  initialValue,
+  initialO,
+  initialX,
+  winConditions,
+} from "../constants/ConstantValue";
 
 const GameBoard = () => {
+  const [state, setState] = useState(initialValue);
+  const [menu, setMenu] = useState(false);
+  const [turnO, setTurnO] = useState(true);
+  const [winReload, setWinReload] = useState(0);
+  const [winner, setWinner] = useState('');
+  const [countO, setCountO] = useState(initialO);
+  const [countX, setCountX] = useState(initialX);
+  const [countScoreO, setCountScoreO] = useState(0);
+  const [countScoreX, setCountScoreX] = useState(0);
+  const [countScoreDraw, setCountScoreDraw] = useState(0);
+  const [drawCountState, setDrawCountState] = useState(9);
+  const [currentTurn, setCurrentTurn] = useState(turnO ? "Current Turn - O" : "Current Turn - X");
 
-  const [state, setState] = useAtom(initialValueAtom)
-  const [menu, setMenu] = useAtom(menuAtom)
-  const [turnO, setTurnO] = useAtom(turn0Atom)
-  const [winReload, setWinReload] = useAtom(winReloadAtom)
-  const [winner, setWinner] = useAtom(winnerAtom)
-  const [countO, setCountO] = useAtom(initialOAtom)
-  const [countX, setCountX] = useAtom(initialXAtom)
-  const [countScoreO, setCountScoreO] = useAtom(countScoreOAtom)
-  const [countScoreX, setCountScoreX] = useAtom(countScoreXAtom)
-  const [countScoreDraw, setCountScoreDraw] = useAtom(countScoreDrawAtom)
-  const [drawCountState, setDrawCountState] = useAtom(drawCountStateAtom)
-  
-  let character: string = ''
-  
-  const handleScore = () => {
-      for(let i = 0; i < winConditions.length; i++){
-        let [a,b,c] = winConditions[i]
-        if((state[a] !== '') && (state[a] === state[b]) && (state[a] === state[c])){
-          setWinner(`Congratulations! ${state[a]} Won`)
-          character = state[a]
+  let character: string = "";
 
-          return 'done'
-        }
-      }
-      return ''
-  }
+  const handleWinner = async() => {
+    for (let i = 0; i < winConditions.length; i++) {
+      let [a, b, c] = winConditions[i];
+      if (state[a] !== "" && state[a] === state[b] && state[a] === state[c]) {
+        setWinner(`Congratulations! ${state[a]} Won`);
+        character = state[a];
 
-  let handleLocalstorageScore = () => {
-    let score = handleScore()
-    if(score === 'done'){
-
-      if(winReload === 0){
-        if(character === 'O') setCountScoreO(prevCount => prevCount + 1) 
-        if(character === 'X') setCountScoreX(prevCount => prevCount + 1)
-        setWinReload(1)
+        return true;
       }
     }
-    if((drawCountState === 0) && (winner === '')) {
+    if (drawCountState === 0 && winner === "") {
+      setWinner('Match Draw')
+      setCountScoreDraw((prevState) => prevState + 1);
+      setDrawCountState(10);
+    }
+    return false;
+  };
 
-      setCountScoreDraw(prevState => prevState + 1)
-      setDrawCountState(10)
-    } 
-  }
-  
+  let handleScore = async() => {
+    let score = await handleWinner();
+    if (score) {
+      if (winReload === 0) {
+        if (character === "O") setCountScoreO((prevCount) => prevCount + 1);
+        if (character === "X") setCountScoreX((prevCount) => prevCount + 1);
+        setWinReload(1);
+      }
+    }
+  };
+
   useEffect(() => {
-    handleLocalstorageScore()
+    handleScore();
+  }, [turnO]);
+
+  let handleClick = (i: number) => {
+    if (state[i] !== "") return;
+    if (winner !== "") return;
+
+    if (turnO) {
+      let newValueArray = [...state];
+      newValueArray[i] = "O";
+      setState(newValueArray);
+      
+      setTurnO((prevState) => !prevState);
+
+      let newCountO = [...countO];
+      newCountO.pop();
+      setCountO(newCountO);
+
+      setDrawCountState((prevCount) => prevCount - 1);
+    }
+  };
+
+  let handleDoubleClick = (i: number) => {
+    if (state[i] !== "") return;
+    if (winner !== "") return;
+
+    if (!turnO) {
+      let newValueArray = [...state];
+      newValueArray[i] = "X";
+      setState(newValueArray);
+
+      setTurnO((prevState) => !prevState);
+
+      let newCountX = [...countX];
+      newCountX.pop();
+      setCountX(newCountX);
+
+      setDrawCountState((prevCount) => prevCount - 1);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentTurn(turnO ? "Current Turn - O" : "Current Turn - X")
   }, [turnO])
 
-  let handleClick = (i: number, e: number ) => {
-  
-    if(state[i] !== "") return
-    if(winner !== "") return
-
-    if(turnO){
-      let newValueArray = [...state]
-      newValueArray[i] = 'O'
-      setState(newValueArray)
-      setTurnO(prevState => !prevState)
-      let newCountO = [...countO]
-      newCountO.pop()
-      setCountO(newCountO)
-      setDrawCountState(prevCount => prevCount - 1)
-    }else if(!turnO && (e == 2)){
-      let newValueArray = [...state]
-      newValueArray[i] = 'X'
-      setState(newValueArray)
-      setTurnO(prevState => !prevState)
-      let newCountX = [...countX]
-      newCountX.pop()
-      setCountX(newCountX)
-      setDrawCountState(prevCount => prevCount - 1)
-    }
-  }
-
   let handleMenu = () => {
-    setMenu(prevState => !prevState)
-  }
+    setMenu((prevState) => !prevState);
+  };
 
-  let currentTurn = turnO ? "Current Turn - O" : "Current Turn - X"
+  // let currentTurn = turnO ? "Current Turn - O" : "Current Turn - X";
 
-  let winnerGreet = winner !== '' ? winner : currentTurn
-  
-  if((drawCountState === 10) && (winner === '')) winnerGreet = 'Match Draw'
-  
+  // let winnerGreet = winner !== "" ? winner : currentTurn;
+
+  // if (drawCountState === 10 && winner === "") winnerGreet = "Match Draw";
+
   let handleReset = () => {
-    setState(initialValue)
-    setWinner('') 
-    setCountO(initialO)
-    setCountX(initialX)
-    setDrawCountState(9)
-    setWinReload(0)
-  }
+    setState(initialValue);
+    setWinner("");
+    setCountO(initialO);
+    setCountX(initialX);
+    setDrawCountState(9);
+    setWinReload(0);
+  };
 
-  let handleClearScore = () => {
-    setCountScoreO(0)
-    setCountScoreX(0)
-    setCountScoreDraw(0)
-    handleReset()
+  let handleResetGame = () => {
+    setCountScoreO(0);
+    setCountScoreX(0);
+    setCountScoreDraw(0);
+    handleReset();
+  };
+
+  let hidden: React.CSSProperties =
+    winner === ""
+      ? drawCountState !== 10
+        ? { visibility: "hidden" }
+        : { visibility: "visible" }
+      : { visibility: "visible" };
+
+  const winnerAnnounce = () => {
+    return (winner === '') ? currentTurn : winner
   }
-  
-  let hidden: React.CSSProperties = (winner === '') ? (drawCountState !== 10) ? {visibility: 'hidden'} : {visibility: 'visible'} : {visibility: 'visible'}
 
   return (
-    <div className=' w-full flex flex-col justify-center items-center'>
-      <div className=' w-full flex flex-row justify-around'>
-        <ScoreContext.Provider value={{character:'O', value:countScoreO}} ><Score /></ScoreContext.Provider>
-        <ScoreContext.Provider value={{character:'Draw', value:countScoreDraw}} ><Score /></ScoreContext.Provider>
-        <ScoreContext.Provider value={{character:'X', value:countScoreX}} ><Score /></ScoreContext.Provider>
+    <div className=" w-full flex flex-col justify-center items-center">
+      <div className=" w-full flex flex-row justify-around">
+
+          <Score character="O" score={countScoreO}/>
+          <Score character="Draw" score={countScoreDraw}/>
+          <Score character="X" score={countScoreX}/>
+
       </div>
-      <div className='w-full flex flex-row justify-evenly items-center'>
+      <div className="w-full flex flex-row justify-evenly items-center">
         <div>
-          <ChancesContext.Provider value={countO}><Chances /></ChancesContext.Provider>
+          <Chances chances={countO} />
         </div>
-        <div className='flex flex-col'>
-          <div className='text-center text-[40px] mb-5'>
-            <CurrentTurnContext.Provider value={winnerGreet} ><CurrentTurn /></CurrentTurnContext.Provider>
+        <div className="flex flex-col">
+          <div className="text-center text-[40px] mb-5">
+            <CurrentTurn turn={winnerAnnounce()} />
           </div>
-          <div className='flex justify-center items-center flex-row text-[100px]'>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(0, e.detail), value:state[0]}}><SingleSquareBoard /></SingleBoardContext.Provider>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(1, e.detail), value:state[1]}}><SingleSquareBoard /></SingleBoardContext.Provider>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(2, e.detail), value:state[2]}}><SingleSquareBoard /></SingleBoardContext.Provider>
+          <div className="flex justify-center items-center flex-row text-[100px]">
+              
+              <SingleSquareBoard value={state[0]} onClick={() => handleClick(0)} onDoubleClick={() => handleDoubleClick(0)} />
+              <SingleSquareBoard value={state[1]} onClick={() => handleClick(1)} onDoubleClick={() => handleDoubleClick(1)} />
+              <SingleSquareBoard value={state[2]} onClick={() => handleClick(2)} onDoubleClick={() => handleDoubleClick(2)} />
+
           </div>
-          <div className='flex justify-center items-center flex-row text-[100px]'>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(3, e.detail), value:state[3]}}><SingleSquareBoard /></SingleBoardContext.Provider>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(4, e.detail), value:state[4]}}><SingleSquareBoard /></SingleBoardContext.Provider>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(5, e.detail), value:state[5]}}><SingleSquareBoard /></SingleBoardContext.Provider>
+          <div className="flex justify-center items-center flex-row text-[100px]">
+              
+              <SingleSquareBoard value={state[3]} onClick={() => handleClick(3)} onDoubleClick={() => handleDoubleClick(3)} />
+              <SingleSquareBoard value={state[4]} onClick={() => handleClick(4)} onDoubleClick={() => handleDoubleClick(4)} />
+              <SingleSquareBoard value={state[5]} onClick={() => handleClick(5)} onDoubleClick={() => handleDoubleClick(5)} />
+
           </div>
-          <div className='flex justify-center items-center flex-row text-[100px]'>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(6, e.detail), value:state[6]}}><SingleSquareBoard /></SingleBoardContext.Provider>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(7, e.detail), value:state[7]}}><SingleSquareBoard /></SingleBoardContext.Provider>
-            <SingleBoardContext.Provider value={{onClick:(e) => handleClick(8, e.detail), value:state[8]}}><SingleSquareBoard /></SingleBoardContext.Provider>
+          <div className="flex justify-center items-center flex-row text-[100px]">
+              
+              <SingleSquareBoard value={state[6]} onClick={() => handleClick(6)} onDoubleClick={() => handleDoubleClick(6)} />
+              <SingleSquareBoard value={state[7]} onClick={() => handleClick(7)} onDoubleClick={() => handleDoubleClick(7)} />
+              <SingleSquareBoard value={state[8]} onClick={() => handleClick(8)} onDoubleClick={() => handleDoubleClick(8)} />
+
           </div>
           <div>
-            <button style={hidden} className='border border-green-600 mt-[30px] py-[15px] px-[30px] rounded-3xl hover:bg-green-600 ' onClick={handleReset} >New Game</button>
+            <button
+              style={hidden}
+              className="border border-green-600 mt-[30px] py-[15px] px-[30px] rounded-3xl hover:bg-green-600 "
+              onClick={handleReset}
+            >
+              New Game
+            </button>
           </div>
         </div>
         <div>
-          <ChancesContext.Provider value={countX}><Chances /></ChancesContext.Provider>
-        </div> 
+          <Chances chances={countX} />
+        </div>
       </div>
-      <div className=' w-[80vw] text-end flex flex-col justify-end items-end relative'>
-        <div className=' absolute bottom-14'>
-          { 
-            menu && (
-            <MenuContext.Provider value={{resetBoard:handleReset, resetGame:handleClearScore}}><MenuButton /></MenuContext.Provider>)
-          }
+      <div className=" w-[80vw] text-end flex flex-col justify-end items-end relative">
+        <div className=" absolute bottom-14">
+          {menu && (
+            <MenuButton resetBoard={handleReset} resetGame={handleResetGame} />
+          )}
         </div>
         <button onClick={handleMenu}>
-          <img src={MenuIcon} alt="Menu" className='w-[57px]' />
+          <img src={MenuIcon} alt="Menu" className="w-[57px]" />
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default GameBoard
+export default GameBoard;

@@ -1,13 +1,15 @@
-import { useSingleBoardContext } from "./Context/SingleBoardContext"
+type SingleSquareBoardProps = {
+  onClick: () => void  
+  onDoubleClick: () => void
+  value: string
+}
 
-const SingleSquareBoard = () => {
-
-  const {onClick, value} = useSingleBoardContext()
+const SingleSquareBoard = ({onClick, onDoubleClick, value}: SingleSquareBoardProps) => {
 
   return (
-    <div className='w-[170px] h-[170px] border-4 border-zinc-900 px-[50px] cursor-pointer' onClick={onClick}>
+    <button className='w-[170px] h-[170px] border-4 border-zinc-900 px-[50px] cursor-pointer' onClick={onClick} onDoubleClick={onDoubleClick}>
         {value}
-    </div>
+    </button>
   )
 }
 
