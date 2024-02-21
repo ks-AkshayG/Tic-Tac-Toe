@@ -1,8 +1,9 @@
-import { useMenuContext } from "./Context/MenuContext"
+type MenuButtonProps = {
+  resetBoard: () => void
+  resetGame: () => void
+}
 
-const MenuButton = () => {
-
-  const { resetBoard, resetGame } = useMenuContext()
+const MenuButton = ({resetBoard, resetGame}: MenuButtonProps) => {
 
   return (
     <div>

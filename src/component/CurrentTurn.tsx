@@ -1,11 +1,11 @@
-import { useCurrentTurnContext } from "./Context/CurrentTurnContext"
+type CurrentTurnProps = {
+  turn: string | undefined
+}
 
-const CurrentTurn = () => {
-
-  const value = useCurrentTurnContext()
+const CurrentTurn = ({turn}: CurrentTurnProps) => {
 
   return (
-    <div><span className=' text-cyan-500 text-[40px] '>{value}</span></div>
+    <div><span className=' text-cyan-500 text-[40px] '>{turn}</span></div>
   )
 }
 
