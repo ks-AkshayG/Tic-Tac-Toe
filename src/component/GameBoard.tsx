@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SingleSquareBoard from "./SingleSquareBoard";
 import CurrentTurn from "./CurrentTurn";
 import Chances from "./Chances";
@@ -25,6 +25,7 @@ type GameBoardProps = {
 const GameBoard = ({ data }: GameBoardProps) => {
   const { GameID } = useParams();
   const queryClient = useQueryClient();
+  const navigate = useNavigate()
 
   // console.log(data)
 
@@ -172,19 +173,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     setCurrentTurn(turnO ? "Current Turn - O" : "Current Turn - X");
   }, [turnO]);
 
-  // console.log("turnO", turnO);
-  // console.log("dataTurnO", data.turnO);
-  // console.log("dataState", data.state);
-
   const handleMenu = () => {
     setMenu((prevState) => !prevState);
   };
-
-  // let currentTurn = turnO ? "Current Turn - O" : "Current Turn - X";
-
-  // let winnerGreet = winner !== "" ? winner : currentTurn;
-
-  // if (drawCountState === 10 && winner === "") winnerGreet = "Match Draw";
 
   const handleResetData = async () => {
     const supares = await Supabase.from("tic-tac-toe")
@@ -241,6 +232,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
 
   const handleResetGame = async () => {
     await DeleteGameRefetch();
+    navigate('/')
   };
 
   const hidden: React.CSSProperties =
