@@ -38,9 +38,10 @@ const Game = () => {
 
     const { data } = useQuery('get-all-data', handleGetData, {
         keepPreviousData: true,
+        refetchInterval: 5000
     })
 
-    console.log("query data", data)
+    // console.log("query data", data)
 
 
   return (
