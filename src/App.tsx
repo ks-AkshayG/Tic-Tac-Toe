@@ -1,8 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "react-query"
 import Home from "./pages/Home"
-import Game from "./pages/Game"
-
+import GameBoard from "./component/GameBoard"
 function App() {
 
   const queryClient = new QueryClient()
@@ -16,7 +15,7 @@ function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/tictactoe/:GameID" element={<Game />} />
+                <Route path="/tictactoe" element={<GameBoard />} />
               </Routes>
             </BrowserRouter>
           </QueryClientProvider>

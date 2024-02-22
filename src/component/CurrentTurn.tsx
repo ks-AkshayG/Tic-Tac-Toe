@@ -1,5 +1,5 @@
 type CurrentTurnProps = {
-  turn: string | undefined
+  turn: string
 }
 
 const CurrentTurn = ({turn}: CurrentTurnProps) => {
