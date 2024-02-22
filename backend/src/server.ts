@@ -3,6 +3,29 @@ import { createServer } from "http"
 import cors from "cors"
 import { Server, Socket } from "socket.io"
 
+type DataType = {
+    state: string[]
+    turnO: boolean
+    winReload: number
+    winner: string
+    countO: string[]
+    countX: string[]
+    countScoreO: number
+    countScoreX: number
+    countScoreDraw: number
+    drawCountState: number
+    currentTurn: string
+}
+
+type ResetDataType = {
+    state: string[],
+    winner: string,
+    countO: string[],
+    countX: string[],
+    drawCountState: number,
+    winReload: number
+}
+
 const app = express()
 const server = createServer(app)
 
@@ -17,6 +40,27 @@ const io = new Server(server, {
 
 io.on("connection", (socket: Socket) => {
     console.log(`User connected: ${socket.id}`)
+
+    socket.on("join_room", (roomData: string) => {
+        socket.join(roomData)
+    })
+
+    // socket.on("send_test", (message, room) => {
+    //     io.to(room).emit('receive_test', message)
+    // })
+
+    socket.on("send_data", (data: DataType, room: string) => {
+        // socket.broadcast.emit("received_state", data)
+        console.log(room)
+        // io.to(room).emit("received_data", data)
+        io.emit("received_data", data)
+    })
+
+    socket.on("send_reset_data", (resetData: ResetDataType, room: string) => {
+        console.log(room)
+        // io.to(room).emit("received_reset_data", resetData)
+        io.emit("received_reset_data", resetData)
+    })
 
 })
 

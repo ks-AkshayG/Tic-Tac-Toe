@@ -1,24 +1,21 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import { QueryClient, QueryClientProvider } from "react-query"
 import Home from "./pages/Home"
 import GameBoard from "./component/GameBoard"
-function App() {
+import { useState } from "react"
 
-  const queryClient = new QueryClient()
+const App = () => {
 
   return (
     <>
       <div className='w-[100vw] h-[100vh] bg-gray-300 flex flex-col'>
         <div className=" container w-full text-center my-[20px]">
 
-          <QueryClientProvider client={queryClient}>
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/tictactoe" element={<GameBoard />} />
               </Routes>
             </BrowserRouter>
-          </QueryClientProvider>
 
         </div>
       </div>
