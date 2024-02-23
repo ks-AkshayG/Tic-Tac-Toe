@@ -1,9 +1,11 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Home from "./pages/Home"
 import GameBoard from "./component/GameBoard"
-import { useState } from "react"
+import { io } from "socket.io-client"
 
 const App = () => {
+
+  const socket = io("http://localhost:4000")
 
   return (
     <>
@@ -12,8 +14,8 @@ const App = () => {
 
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/tictactoe" element={<GameBoard />} />
+                <Route path="/" element={<Home socket={socket} />} />
+                <Route path="/tictactoe" element={<GameBoard socket={socket} />} />
               </Routes>
             </BrowserRouter>
 

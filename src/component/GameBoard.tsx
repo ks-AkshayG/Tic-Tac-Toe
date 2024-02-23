@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 import { useAtom } from "jotai";
-import { roomID } from "../pages/Home";
+import { roomIDAtom, countAtom } from "../pages/Home";
 
 import SingleSquareBoard from "./SingleSquareBoard";
 import CurrentTurn from "./CurrentTurn";
@@ -18,16 +17,20 @@ import {
   winConditions,
 } from "../constants/ConstantValue";
 import { DataType, ResetDataType } from "../types/dataTypes";
+import { Socket } from "socket.io-client";
 
 // -----------------------------------------------------------------
 
-const socket = io("http://localhost:4000");
+type GameBoardProps = {
+  socket: Socket
+}
 
-const GameBoard = () => {
+const GameBoard = ({socket }: GameBoardProps) => {
 
   const navigate = useNavigate();
 
-  const [room] = useAtom(roomID);
+  const [room] = useAtom(roomIDAtom);
+  const [count, setCount] = useAtom(countAtom)
 
   // console.log(room)
 
@@ -179,8 +182,12 @@ const GameBoard = () => {
   };
 
   const handleResetGame = async () => {
-
-    navigate("/");
+    socket.emit("disconnect_room", room, (response: any) => {
+      if(response){
+        setCount(prevstate => prevstate - 1)
+        navigate("/");
+      }
+    })
   };
 
   const hidden: React.CSSProperties =

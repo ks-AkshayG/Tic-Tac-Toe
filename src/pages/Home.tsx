@@ -1,38 +1,29 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 import { atom, useAtom } from "jotai";
+import { Socket } from "socket.io-client";
 
 // ---------------------------------------------------------------
 
-export const roomID = atom('')
+type HomeProps = {
+  socket: Socket
+}
 
-const Home = () => {
-  const [room, setRoom] = useAtom(roomID);
-  // const [data, setData] = useState('');
+export const roomIDAtom = atom('')
+export const countAtom = atom(0)
 
-  const socket = io("http://localhost:4000");
+const Home = ({ socket }: HomeProps) => {
+  const [count, setCount] = useAtom(countAtom);
+  const [room, setRoom] = useAtom(roomIDAtom);
 
   const navigate = useNavigate();
 
-  const handleGetData = async () => {
+  const handleRoomConnection = () => {
     if (room !== "") {
-      socket.emit("join_room", room);
-      navigate(`/tictactoe`);
+      socket.emit("join_room", room, (response: number) => {
+        response < 2 ? navigate(`/tictactoe`) : setCount(response)
+      });
     }
-    // console.log("created");
-    // console.log(data.data)
-  };
-
-  // const handleTest = () => {
-  //   socket.emit("send_test", 'Test Message', room)
-  // }
-
-  // useEffect(() => {
-  //   socket.on("receive_test", (message: string) => {
-  //     setData(message)
-  //   })
-  // },[socket])
+  }
 
   return (
     <div>
@@ -45,15 +36,14 @@ const Home = () => {
         />
         <button
           className="border border-black py-1 px-3 rounded-xl text-[30px] hover:text-green-600 hover:border-green-600"
-          onClick={handleGetData}
+          onClick={handleRoomConnection}
         >
           New Game
         </button>
       </div>
-      {/* <button onClick={handleTest}>test</button>
       {
-        data
-      } */}
+        count > 1 && <p>Room is full</p>
+      }
     </div>
   );
 };

@@ -26,10 +26,14 @@ type ResetDataType = {
     winReload: number
 }
 
+type callback = (value: any) => any
+
 const app = express()
 const server = createServer(app)
 
 app.use(cors())
+
+const roomArray: string[] = []
 
 const io = new Server(server, {
     cors: {
@@ -41,8 +45,15 @@ const io = new Server(server, {
 io.on("connection", (socket: Socket) => {
     console.log(`User connected: ${socket.id}`)
 
-    socket.on("join_room", (roomData: string) => {
-        socket.join(roomData)
+    socket.on("join_room", (roomData: string, callback: callback) => {
+        let count = roomArray.filter(room => room === roomData).length;
+
+        if(count < 2) {
+            roomArray.push(roomData)
+            socket.join(roomData)
+        }
+
+        callback(count)
     })
 
     // socket.on("send_test", (message, room) => {
@@ -51,15 +62,22 @@ io.on("connection", (socket: Socket) => {
 
     socket.on("send_data", (data: DataType, room: string) => {
         // socket.broadcast.emit("received_state", data)
-        console.log(room)
-        // io.to(room).emit("received_data", data)
-        io.emit("received_data", data)
+        // console.log(room)
+        io.to(room).emit("received_data", data)
     })
 
     socket.on("send_reset_data", (resetData: ResetDataType, room: string) => {
-        console.log(room)
-        // io.to(room).emit("received_reset_data", resetData)
-        io.emit("received_reset_data", resetData)
+        // console.log(room)
+        io.to(room).emit("received_reset_data", resetData)
+    })
+
+    socket.on("disconnect_room", (roomData: string, callback: callback) => {
+        
+        const index = roomArray.indexOf(roomData)
+        roomArray.splice(index, 1)
+        
+        callback(true)
+        socket.disconnect()
     })
 
 })
