@@ -13,8 +13,8 @@ const App = () => {
 
   return (
     <>
-      <div className="w-[100vw] h-[100vh] bg-gray-300 flex flex-col">
-        <div className=" container w-full text-center my-[20px]">
+      <div className="w-[100vw] h-[100vh] text-center bg-gray-300 flex flex-col justify-center">
+        <div className=" w-full ">
           <BrowserRouter>
             <Routes>
               {socket && <Route path="/" element={<Home socket={socket} />} />}
