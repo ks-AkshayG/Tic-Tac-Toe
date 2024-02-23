@@ -1,30 +1,35 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
-import { QueryClient, QueryClientProvider } from "react-query"
-import Home from "./pages/Home"
-import Game from "./pages/Game"
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import GameBoard from "./component/GameBoard";
+import {  io } from "socket.io-client";
+import { atom, useAtom } from "jotai";
 
-function App() {
+export const roomIDAtom = atom("");
+export const countAtom = atom(0);
+export const idAtom = atom("O");
 
-  const queryClient = new QueryClient()
+const App = () => {
+  const socket = io("http://localhost:4000");
 
   return (
     <>
-      <div className='w-[100vw] h-[100vh] bg-gray-300 flex flex-col'>
-        <div className=" container w-full text-center my-[20px]">
-
-          <QueryClientProvider client={queryClient}>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/tictactoe/:GameID" element={<Game />} />
-              </Routes>
-            </BrowserRouter>
-          </QueryClientProvider>
-
+      <div className="w-[100vw] h-[100vh] text-center bg-gray-300 flex flex-col justify-center">
+        <div className=" w-full ">
+          <BrowserRouter>
+            <Routes>
+              {socket && <Route path="/" element={<Home socket={socket} />} />}
+              {socket && (
+                <Route
+                  path="/tictactoe"
+                  element={<GameBoard socket={socket} />}
+                />
+              )}
+            </Routes>
+          </BrowserRouter>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;

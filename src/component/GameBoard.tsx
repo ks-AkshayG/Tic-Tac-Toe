@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { roomIDAtom, countAtom, idAtom } from "../pages/Home";
+
 import SingleSquareBoard from "./SingleSquareBoard";
 import CurrentTurn from "./CurrentTurn";
 import Chances from "./Chances";
@@ -7,72 +10,44 @@ import Score from "./Score";
 import MenuButton from "./MenuButton";
 import MenuIcon from "../assets/bx-menu.svg";
 
-import { useQuery, useQueryClient } from "react-query";
-import { Supabase } from "../config/supabase";
-
 import {
   initialValue,
   initialO,
   initialX,
   winConditions,
 } from "../constants/ConstantValue";
-import { GetSingleUserData } from "../pages/Game";
+import { DataType, ResetDataType } from "../types/dataTypes";
+import { Socket } from "socket.io-client";
+
+// -----------------------------------------------------------------
 
 type GameBoardProps = {
-  data: GetSingleUserData;
+  socket: Socket;
 };
 
-const GameBoard = ({ data }: GameBoardProps) => {
-  const { GameID } = useParams();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate()
+const GameBoard = ({ socket }: GameBoardProps) => {
+  const navigate = useNavigate();
 
-  // console.log(data)
+  const [room] = useAtom(roomIDAtom);
+  const [playerType, setPlayerType] = useAtom(idAtom);
 
-  const [state, setState] = useState(data.state);
+  // console.log(playerType)
+  // console.log(room)
+
+  const [state, setState] = useState(initialValue);
   const [menu, setMenu] = useState(false);
-  const [turnO, setTurnO] = useState(data.turnO);
-  const [winReload, setWinReload] = useState(data.winReload);
-  const [winner, setWinner] = useState(data.winner);
-  const [countO, setCountO] = useState(data.countO);
-  const [countX, setCountX] = useState(data.countX);
-  const [countScoreO, setCountScoreO] = useState(data.countScoreO);
-  const [countScoreX, setCountScoreX] = useState(data.countScoreX);
-  const [countScoreDraw, setCountScoreDraw] = useState(data.countScoreDraw);
-  const [drawCountState, setDrawCountState] = useState(data.drawCountState);
+  const [turnO, setTurnO] = useState(true);
+  const [winReload, setWinReload] = useState(0);
+  const [winner, setWinner] = useState("");
+  const [countO, setCountO] = useState(initialO);
+  const [countX, setCountX] = useState(initialX);
+  const [countScoreO, setCountScoreO] = useState(0);
+  const [countScoreX, setCountScoreX] = useState(0);
+  const [countScoreDraw, setCountScoreDraw] = useState(0);
+  const [drawCountState, setDrawCountState] = useState(9);
   const [currentTurn, setCurrentTurn] = useState(
-    data.turnO ? "Current Turn - O" : "Current Turn - X"
+    turnO ? "Current Turn - O" : "Current Turn - X"
   );
-
-  const handleUpdateData = async () => {
-    const supares = await Supabase.from("tic-tac-toe")
-      .update({
-        state,
-        turnO,
-        winReload,
-        winner,
-        countO,
-        countX,
-        countScoreO,
-        countScoreX,
-        countScoreDraw,
-        drawCountState,
-        currentTurn,
-      })
-      .eq("id", GameID);
-
-    const status = supares.status;
-    console.log("update", status);
-
-    return status;
-  };
-
-  const { refetch: updateRefetch } = useQuery("update-data", handleUpdateData, {
-    enabled: false,
-    onSettled() {
-      queryClient.invalidateQueries("get-score-data");
-    },
-  });
 
   const handleWinner = async () => {
     if (winReload !== 0) return;
@@ -107,33 +82,11 @@ const GameBoard = ({ data }: GameBoardProps) => {
   };
 
   useEffect(() => {
-    const handleRender = async () => {
-      await handleDraw();
-      await scoreRefetch();
-      await updateRefetch();
-      await scoreRefetch();
-      await updateRefetch();
-    };
-    handleRender();
+    handleDraw();
   }, [turnO]);
 
-  useEffect(() => {
-    setState(data.state);
-    setTurnO(data.turnO);
-    setWinReload(data.winReload);
-    setWinner(data.winner);
-    setCountO(data.countO);
-    setCountX(data.countX);
-    setCountScoreO(data.countScoreO);
-    setCountScoreX(data.countScoreX);
-    setCountScoreDraw(data.countScoreDraw);
-    setDrawCountState(data.drawCountState);
-    setCurrentTurn(data.currentTurn);
-  }, [data.turnO]);
-
   const handleClick = (i: number) => {
-    if (state[i] !== "") return;
-    if (winner !== "") return;
+    if (state[i] !== "" || winner !== "" || playerType !== "O") return;
 
     if (turnO) {
       let newValueArray = [...state];
@@ -151,8 +104,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
   };
 
   const handleDoubleClick = (i: number) => {
-    if (state[i] !== "") return;
-    if (winner !== "") return;
+    if (state[i] !== "" || winner !== "" || playerType !== "X") return;
 
     if (!turnO) {
       let newValueArray = [...state];
@@ -170,70 +122,85 @@ const GameBoard = ({ data }: GameBoardProps) => {
   };
 
   useEffect(() => {
+    socket.emit(
+      "send_data",
+      {
+        state,
+        turnO,
+        winReload,
+        winner,
+        countO,
+        countX,
+        countScoreO,
+        countScoreX,
+        countScoreDraw,
+        drawCountState,
+        currentTurn,
+      },
+      room
+    );
+    // console.log("data passed");
+  }, [currentTurn]);
+
+  useEffect(() => {
     setCurrentTurn(turnO ? "Current Turn - O" : "Current Turn - X");
+    // console.log('current turn changed', currentTurn)
   }, [turnO]);
 
   const handleMenu = () => {
     setMenu((prevState) => !prevState);
   };
 
-  const handleResetData = async () => {
-    const supares = await Supabase.from("tic-tac-toe")
-      .update({
+  useEffect(() => {
+    socket.on("received_reset_data", (resetData: ResetDataType) => {
+      setState(resetData.state);
+      setWinner(resetData.winner);
+      setCountO(resetData.countO);
+      setCountX(resetData.countX);
+      setDrawCountState(resetData.drawCountState);
+      setWinReload(resetData.winReload);
+    });
+  }, []);
+
+  const handleReset = async () => {
+    socket.emit(
+      "send_reset_data",
+      {
         state: initialValue,
-        turnO: turnO,
-        winReload: 0,
         winner: "",
         countO: initialO,
         countX: initialX,
-        countScoreO: countScoreO,
-        countScoreX: countScoreX,
-        countScoreDraw: countScoreDraw,
         drawCountState: 9,
-        currentTurn: currentTurn,
-      })
-      .eq("id", GameID);
+        winReload: 0,
+      },
+      room
+    );
 
-    return supares;
+    socket.on("received_reset_data", (resetData: ResetDataType) => {
+      // console.log('data reset')
+      setState(resetData.state);
+      setWinner(resetData.winner);
+      setCountO(resetData.countO);
+      setCountX(resetData.countX);
+      setDrawCountState(resetData.drawCountState);
+      setWinReload(resetData.winReload);
+    });
   };
-
-  const { refetch: ResetRefetch } = useQuery("reset-data", handleResetData, {
-    enabled: false,
-    onSettled() {
-      queryClient.invalidateQueries("get-score-data");
-    },
-  });
-
-  const handleReset = async () => {
-    setState(initialValue);
-    setWinner("");
-    setCountO(initialO);
-    setCountX(initialX);
-    setDrawCountState(9);
-    setWinReload(0);
-    await ResetRefetch();
-  };
-
-  const handleDeleteData = async () => {
-    const supares = await Supabase.from("tic-tac-toe")
-      .delete()
-      .eq("id", GameID);
-
-    return supares;
-  };
-
-  const { refetch: DeleteGameRefetch } = useQuery(
-    "delete-game-data",
-    handleDeleteData,
-    {
-      enabled: false,
-    }
-  );
 
   const handleResetGame = async () => {
-    await DeleteGameRefetch();
-    navigate('/')
+    socket.emit("disconnect_room", room, (response: any) => {
+      if (response) {
+        // setCount(prevstate => prevstate - 1)
+        navigate("/");
+      }
+    });
   };
+
+  useEffect(() => {
+    socket.on("home", (response) => {
+      if (response) navigate("/");
+    });
+  }, [socket]);
 
   const hidden: React.CSSProperties =
     winner === ""
@@ -242,111 +209,94 @@ const GameBoard = ({ data }: GameBoardProps) => {
         : { visibility: "visible" }
       : { visibility: "visible" };
 
-  const handleGetScoreData = async () => {
-    const supares = await Supabase.from("tic-tac-toe")
-      .select()
-      .eq("id", GameID)
-      .single();
+  useEffect(() => {
+    socket.on("received_data", (data: DataType) => {
+      // console.log('data received')
+      setState(data.state);
+      setTurnO(data.turnO);
+      setWinReload(data.winReload);
+      setWinner(data.winner);
+      setCountO(data.countO);
+      setCountX(data.countX);
+      setCountScoreO(data.countScoreO);
+      setCountScoreX(data.countScoreX);
+      setCountScoreDraw(data.countScoreDraw);
+      setDrawCountState(data.drawCountState);
+      setCurrentTurn(data.currentTurn);
 
-    const data = supares.data as GetSingleUserData;
-
-    return data;
-  };
-
-  const {
-    data: ScoreData,
-    refetch: scoreRefetch,
-    isFetching,
-  } = useQuery("get-score-data", handleGetScoreData, {
-    keepPreviousData: true,
-    refetchInterval: 10000,
-    onSettled() {
-      queryClient.invalidateQueries("update-data");
-    },
-  });
-
-  console.log("fetching score", isFetching);
-
-  const winnerAnnounce = () => {
-    return ScoreData?.winner === "" ? ScoreData.currentTurn : ScoreData?.winner;
-  };
+      // console.log(data)
+    });
+  }, [currentTurn]);
 
   return (
     <div className=" w-full flex flex-col justify-center items-center">
-      {ScoreData && (
-        <div className=" w-full flex flex-row justify-around">
-          <Score character="O" score={ScoreData.countScoreO} />
-          <Score character="Draw" score={ScoreData.countScoreDraw} />
-          <Score character="X" score={ScoreData.countScoreX} />
-        </div>
-      )}
+      <div className=" w-full flex flex-row justify-around">
+        <Score character="O" score={countScoreO} />
+        <Score character="Draw" score={countScoreDraw} />
+        <Score character="X" score={countScoreX} />
+      </div>
+
       <div className="w-full flex flex-row justify-evenly items-center">
-        {ScoreData && (
-          <div>
-            <Chances chances={ScoreData.countO} />
-          </div>
-        )}
+        <div>
+          <Chances chances={countO} />
+        </div>
+
         <div className="flex flex-col">
           <div className="text-center text-[40px] mb-5">
-            <CurrentTurn turn={winnerAnnounce()} />
+            <span>Your are playing as {playerType}</span>
+            <CurrentTurn turn={winner === "" ? currentTurn : winner} />
           </div>
-          {ScoreData && (
-            <div className="flex justify-center items-center flex-row text-[100px]">
-              <SingleSquareBoard
-                value={ScoreData.state[0]}
-                onClick={() => handleClick(0)}
-                onDoubleClick={() => handleDoubleClick(0)}
-              />
-              <SingleSquareBoard
-                value={ScoreData.state[1]}
-                onClick={() => handleClick(1)}
-                onDoubleClick={() => handleDoubleClick(1)}
-              />
-              <SingleSquareBoard
-                value={ScoreData.state[2]}
-                onClick={() => handleClick(2)}
-                onDoubleClick={() => handleDoubleClick(2)}
-              />
-            </div>
-          )}
-          {ScoreData && (
-            <div className="flex justify-center items-center flex-row text-[100px]">
-              <SingleSquareBoard
-                value={ScoreData.state[3]}
-                onClick={() => handleClick(3)}
-                onDoubleClick={() => handleDoubleClick(3)}
-              />
-              <SingleSquareBoard
-                value={ScoreData.state[4]}
-                onClick={() => handleClick(4)}
-                onDoubleClick={() => handleDoubleClick(4)}
-              />
-              <SingleSquareBoard
-                value={ScoreData.state[5]}
-                onClick={() => handleClick(5)}
-                onDoubleClick={() => handleDoubleClick(5)}
-              />
-            </div>
-          )}
-          {ScoreData && (
-            <div className="flex justify-center items-center flex-row text-[100px]">
-              <SingleSquareBoard
-                value={ScoreData.state[6]}
-                onClick={() => handleClick(6)}
-                onDoubleClick={() => handleDoubleClick(6)}
-              />
-              <SingleSquareBoard
-                value={ScoreData.state[7]}
-                onClick={() => handleClick(7)}
-                onDoubleClick={() => handleDoubleClick(7)}
-              />
-              <SingleSquareBoard
-                value={ScoreData.state[8]}
-                onClick={() => handleClick(8)}
-                onDoubleClick={() => handleDoubleClick(8)}
-              />
-            </div>
-          )}
+          <div className="flex justify-center items-center flex-row text-[100px]">
+            <SingleSquareBoard
+              value={state[0]}
+              onClick={() => handleClick(0)}
+              onDoubleClick={() => handleDoubleClick(0)}
+            />
+            <SingleSquareBoard
+              value={state[1]}
+              onClick={() => handleClick(1)}
+              onDoubleClick={() => handleDoubleClick(1)}
+            />
+            <SingleSquareBoard
+              value={state[2]}
+              onClick={() => handleClick(2)}
+              onDoubleClick={() => handleDoubleClick(2)}
+            />
+          </div>
+          <div className="flex justify-center items-center flex-row text-[100px]">
+            <SingleSquareBoard
+              value={state[3]}
+              onClick={() => handleClick(3)}
+              onDoubleClick={() => handleDoubleClick(3)}
+            />
+            <SingleSquareBoard
+              value={state[4]}
+              onClick={() => handleClick(4)}
+              onDoubleClick={() => handleDoubleClick(4)}
+            />
+            <SingleSquareBoard
+              value={state[5]}
+              onClick={() => handleClick(5)}
+              onDoubleClick={() => handleDoubleClick(5)}
+            />
+          </div>
+          <div className="flex justify-center items-center flex-row text-[100px]">
+            <SingleSquareBoard
+              value={state[6]}
+              onClick={() => handleClick(6)}
+              onDoubleClick={() => handleDoubleClick(6)}
+            />
+            <SingleSquareBoard
+              value={state[7]}
+              onClick={() => handleClick(7)}
+              onDoubleClick={() => handleDoubleClick(7)}
+            />
+            <SingleSquareBoard
+              value={state[8]}
+              onClick={() => handleClick(8)}
+              onDoubleClick={() => handleDoubleClick(8)}
+            />
+          </div>
           <div>
             <button
               style={hidden}
@@ -357,11 +307,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
             </button>
           </div>
         </div>
-        {ScoreData && (
-          <div>
-            <Chances chances={ScoreData.countX} />
-          </div>
-        )}
+        <div>
+          <Chances chances={countX} />
+        </div>
       </div>
       <div className=" w-[80vw] text-end flex flex-col justify-end items-end relative">
         <div className=" absolute bottom-14">
