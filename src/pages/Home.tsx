@@ -10,10 +10,12 @@ type HomeProps = {
 
 export const roomIDAtom = atom('')
 export const countAtom = atom(0)
+export const idAtom = atom("O")
 
 const Home = ({ socket }: HomeProps) => {
   const [count, setCount] = useAtom(countAtom);
   const [room, setRoom] = useAtom(roomIDAtom);
+  const [playerType, setPlayerType] = useAtom(idAtom);
 
   const navigate = useNavigate();
 
@@ -21,6 +23,7 @@ const Home = ({ socket }: HomeProps) => {
     if (room !== "") {
       socket.emit("join_room", room, (response: number) => {
         response < 2 ? navigate(`/tictactoe`) : setCount(response)
+        response === 0 ? setPlayerType("O") : setPlayerType("X")
       });
     }
   }

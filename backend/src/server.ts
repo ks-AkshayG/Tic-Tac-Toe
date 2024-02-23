@@ -48,12 +48,12 @@ io.on("connection", (socket: Socket) => {
     socket.on("join_room", (roomData: string, callback: callback) => {
         let count = roomArray.filter(room => room === roomData).length;
 
-        if(count < 2) {
-            roomArray.push(roomData)
-            socket.join(roomData)
-        }
+        if (count < 2) {
+            roomArray.push(roomData);
+            socket.join(roomData);
 
-        callback(count)
+        } 
+        callback(count);
     })
 
     // socket.on("send_test", (message, room) => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import { roomIDAtom, countAtom } from "../pages/Home";
+import { roomIDAtom, countAtom, idAtom } from "../pages/Home";
 
 import SingleSquareBoard from "./SingleSquareBoard";
 import CurrentTurn from "./CurrentTurn";
@@ -25,13 +25,15 @@ type GameBoardProps = {
   socket: Socket
 }
 
-const GameBoard = ({socket }: GameBoardProps) => {
+const GameBoard = ({socket}: GameBoardProps) => {
 
   const navigate = useNavigate();
 
   const [room] = useAtom(roomIDAtom);
   const [count, setCount] = useAtom(countAtom)
-
+  const [playerType, setPlayerType] = useAtom(idAtom)
+  
+  // console.log(playerType)
   // console.log(room)
 
   const [state, setState] = useState(initialValue);
@@ -86,8 +88,7 @@ const GameBoard = ({socket }: GameBoardProps) => {
   }, [turnO]);
 
   const handleClick = (i: number) => {
-    if (state[i] !== "") return;
-    if (winner !== "") return;
+    if (state[i] !== "" || winner !== "" || playerType !== "O") return;
 
     if (turnO) {
       let newValueArray = [...state];
@@ -105,8 +106,7 @@ const GameBoard = ({socket }: GameBoardProps) => {
   };
 
   const handleDoubleClick = (i: number) => {
-    if (state[i] !== "") return;
-    if (winner !== "") return;
+    if (state[i] !== "" || winner !== "" || playerType !== "X") return;
 
     if (!turnO) {
       let newValueArray = [...state];
@@ -210,7 +210,7 @@ const GameBoard = ({socket }: GameBoardProps) => {
       setCountScoreX(data.countScoreX)
       setCountScoreDraw(data.countScoreDraw)
       setDrawCountState(data.drawCountState)
-      setCurrentTurn(data.currentTurn)
+      setCurrentTurn(data.currentTurn) 
 
       // console.log(data)
     });
@@ -231,6 +231,7 @@ const GameBoard = ({socket }: GameBoardProps) => {
 
         <div className="flex flex-col">
           <div className="text-center text-[40px] mb-5">
+            <span>Your are playing as {playerType}</span>
             <CurrentTurn turn={winner === '' ? currentTurn : winner} />
           </div>
           <div className="flex justify-center items-center flex-row text-[100px]">
