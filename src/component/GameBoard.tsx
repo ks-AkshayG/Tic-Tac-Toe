@@ -22,17 +22,15 @@ import { Socket } from "socket.io-client";
 // -----------------------------------------------------------------
 
 type GameBoardProps = {
-  socket: Socket
-}
+  socket: Socket;
+};
 
-const GameBoard = ({socket}: GameBoardProps) => {
-
+const GameBoard = ({ socket }: GameBoardProps) => {
   const navigate = useNavigate();
 
   const [room] = useAtom(roomIDAtom);
-  const [count, setCount] = useAtom(countAtom)
-  const [playerType, setPlayerType] = useAtom(idAtom)
-  
+  const [playerType, setPlayerType] = useAtom(idAtom);
+
   // console.log(playerType)
   // console.log(room)
 
@@ -49,8 +47,8 @@ const GameBoard = ({socket}: GameBoardProps) => {
   const [drawCountState, setDrawCountState] = useState(9);
   const [currentTurn, setCurrentTurn] = useState(
     turnO ? "Current Turn - O" : "Current Turn - X"
-    );
-    
+  );
+
   const handleWinner = async () => {
     if (winReload !== 0) return;
 
@@ -124,19 +122,23 @@ const GameBoard = ({socket}: GameBoardProps) => {
   };
 
   useEffect(() => {
-    socket.emit("send_data", {
-      state,
-      turnO,
-      winReload,
-      winner,
-      countO,
-      countX,
-      countScoreO,
-      countScoreX,
-      countScoreDraw,
-      drawCountState,
-      currentTurn,
-    }, room);
+    socket.emit(
+      "send_data",
+      {
+        state,
+        turnO,
+        winReload,
+        winner,
+        countO,
+        countX,
+        countScoreO,
+        countScoreX,
+        countScoreDraw,
+        drawCountState,
+        currentTurn,
+      },
+      room
+    );
     // console.log("data passed");
   }, [currentTurn]);
 
@@ -157,18 +159,22 @@ const GameBoard = ({socket}: GameBoardProps) => {
       setCountX(resetData.countX);
       setDrawCountState(resetData.drawCountState);
       setWinReload(resetData.winReload);
-    })
-  }, [])
+    });
+  }, []);
 
   const handleReset = async () => {
-    socket.emit("send_reset_data", {
-      state: initialValue,
-      winner: "",
-      countO: initialO,
-      countX: initialX,
-      drawCountState: 9,
-      winReload: 0
-    }, room)
+    socket.emit(
+      "send_reset_data",
+      {
+        state: initialValue,
+        winner: "",
+        countO: initialO,
+        countX: initialX,
+        drawCountState: 9,
+        winReload: 0,
+      },
+      room
+    );
 
     socket.on("received_reset_data", (resetData: ResetDataType) => {
       // console.log('data reset')
@@ -178,17 +184,23 @@ const GameBoard = ({socket}: GameBoardProps) => {
       setCountX(resetData.countX);
       setDrawCountState(resetData.drawCountState);
       setWinReload(resetData.winReload);
-    })
+    });
   };
 
   const handleResetGame = async () => {
     socket.emit("disconnect_room", room, (response: any) => {
-      if(response){
-        setCount(prevstate => prevstate - 1)
+      if (response) {
+        // setCount(prevstate => prevstate - 1)
         navigate("/");
       }
-    })
+    });
   };
+
+  useEffect(() => {
+    socket.on("home", (response) => {
+      if (response) navigate("/");
+    });
+  }, [socket]);
 
   const hidden: React.CSSProperties =
     winner === ""
@@ -200,17 +212,17 @@ const GameBoard = ({socket}: GameBoardProps) => {
   useEffect(() => {
     socket.on("received_data", (data: DataType) => {
       // console.log('data received')
-      setState(data.state)
-      setTurnO(data.turnO)
-      setWinReload(data.winReload)
-      setWinner(data.winner)
-      setCountO(data.countO)
-      setCountX(data.countX)
-      setCountScoreO(data.countScoreO)
-      setCountScoreX(data.countScoreX)
-      setCountScoreDraw(data.countScoreDraw)
-      setDrawCountState(data.drawCountState)
-      setCurrentTurn(data.currentTurn) 
+      setState(data.state);
+      setTurnO(data.turnO);
+      setWinReload(data.winReload);
+      setWinner(data.winner);
+      setCountO(data.countO);
+      setCountX(data.countX);
+      setCountScoreO(data.countScoreO);
+      setCountScoreX(data.countScoreX);
+      setCountScoreDraw(data.countScoreDraw);
+      setDrawCountState(data.drawCountState);
+      setCurrentTurn(data.currentTurn);
 
       // console.log(data)
     });
@@ -232,7 +244,7 @@ const GameBoard = ({socket}: GameBoardProps) => {
         <div className="flex flex-col">
           <div className="text-center text-[40px] mb-5">
             <span>Your are playing as {playerType}</span>
-            <CurrentTurn turn={winner === '' ? currentTurn : winner} />
+            <CurrentTurn turn={winner === "" ? currentTurn : winner} />
           </div>
           <div className="flex justify-center items-center flex-row text-[100px]">
             <SingleSquareBoard

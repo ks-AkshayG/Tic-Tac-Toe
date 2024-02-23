@@ -5,12 +5,12 @@ import { Socket } from "socket.io-client";
 // ---------------------------------------------------------------
 
 type HomeProps = {
-  socket: Socket
-}
+  socket: Socket;
+};
 
-export const roomIDAtom = atom('')
-export const countAtom = atom(0)
-export const idAtom = atom("O")
+export const roomIDAtom = atom("");
+export const countAtom = atom(0);
+export const idAtom = atom("O");
 
 const Home = ({ socket }: HomeProps) => {
   const [count, setCount] = useAtom(countAtom);
@@ -22,11 +22,11 @@ const Home = ({ socket }: HomeProps) => {
   const handleRoomConnection = () => {
     if (room !== "") {
       socket.emit("join_room", room, (response: number) => {
-        response < 2 ? navigate(`/tictactoe`) : setCount(response)
-        response === 0 ? setPlayerType("O") : setPlayerType("X")
+        response < 2 ? navigate(`/tictactoe`) : setCount(response);
+        response === 0 ? setPlayerType("O") : setPlayerType("X");
       });
     }
-  }
+  };
 
   return (
     <div>
@@ -44,9 +44,7 @@ const Home = ({ socket }: HomeProps) => {
           New Game
         </button>
       </div>
-      {
-        count > 1 && <p>Room is full</p>
-      }
+      {count > 1 && <p>Room is full</p>}
     </div>
   );
 };
