@@ -1,7 +1,8 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Link, Route, Routes } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "react-query"
 import Home from "./pages/Home"
 import Game from "./pages/Game"
+import SupabaseLogin from "./component/SupabaseLogin"
 
 function App() {
 
@@ -14,9 +15,17 @@ function App() {
 
           <QueryClientProvider client={queryClient}>
             <BrowserRouter>
+
+              <nav>
+                <ul>
+                  <Link to={`/`}>Home</Link>
+                </ul>
+              </nav>
+
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/tictactoe/:GameID" element={<Game />} />
+                <Route path="/login" element={<SupabaseLogin />} />
               </Routes>
             </BrowserRouter>
           </QueryClientProvider>
