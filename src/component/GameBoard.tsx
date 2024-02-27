@@ -19,7 +19,7 @@ import {
 import { GetSingleUserData } from "../pages/Game";
 import { useLocalStorage } from "usehooks-ts";
 import { useAtom } from "jotai";
-import { isLoginAtom, userDataAtom } from "../constants/JotaiAtoms";
+import { isLoginAtom } from "../constants/JotaiAtoms";
 
 type GameBoardProps = {
   data: GetSingleUserData;
@@ -50,7 +50,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
   const [value, setValue] = useState("");
 
   const [isLogin] = useAtom(isLoginAtom)
-  const [userData] = useAtom(userDataAtom)
+  // const [userData] = useAtom(userDataAtom)
 
   // console.log(userData)
 
@@ -319,6 +319,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
       )}
       {character && ScoreData && (
         <div>
+          <h2 className="w-full text-start text-[20px] flex items-center">GameID: <span className=" text-green-700 text-[30px] ml-1">{GameID}</span></h2>
           <div className=" w-full flex flex-row justify-around">
             <Score character="O" score={ScoreData.countScoreO} />
             <Score character="Draw" score={ScoreData.countScoreDraw} />
@@ -332,6 +333,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
               <div className="text-center text-[40px] mb-5">
                 <CurrentTurn turn={winnerAnnounce()} />
               </div>
+              <p className="w-full text-start text-[20px] flex items-center">You are playing as <span className=" text-red-700 text-[30px] ml-1">{character}</span></p>
               <div className="flex justify-center items-center flex-row text-[100px]">
                 <SingleSquareBoard
                   value={ScoreData.state[0]}

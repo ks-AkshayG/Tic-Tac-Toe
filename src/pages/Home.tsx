@@ -49,21 +49,35 @@ const Home = () => {
     enabled: false,
   });
 
-  const handleGetData = async () => {
+  const handleNewGame = async () => {
     const data = await refetch()
     // console.log("created");
     // console.log(data.data)
     navigate(`/tictactoe/${data.data?.id}`)
   };
 
+  const handleExistingGame = () => {
+    const GameID = prompt('Enter the GameID')
+
+    if(GameID){
+      navigate(`/tictactoe/${GameID}`)
+    }
+  }
+
   return (
     <div>
       <h1 className="w-full text-[70px] text-lime-600">Tic - Tac - Toe</h1>
         <button
           className="border border-black py-1 px-3 rounded-xl text-[30px] hover:text-green-600 hover:border-green-600"
-          onClick={handleGetData}
+          onClick={handleNewGame}
         >
           New Game
+        </button>
+        <button
+          className="border border-black py-1 px-3 rounded-xl text-[30px] hover:text-green-600 hover:border-green-600 ml-2"
+          onClick={handleExistingGame}
+        >
+          Existing Game
         </button>
     </div>
   );
