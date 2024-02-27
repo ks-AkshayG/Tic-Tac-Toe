@@ -18,6 +18,8 @@ import {
 } from "../constants/ConstantValue";
 import { GetSingleUserData } from "../pages/Game";
 import { useLocalStorage } from "usehooks-ts";
+import { useAtom } from "jotai";
+import { isLoginAtom, userDataAtom } from "../constants/JotaiAtoms";
 
 type GameBoardProps = {
   data: GetSingleUserData;
@@ -44,8 +46,13 @@ const GameBoard = ({ data }: GameBoardProps) => {
   const [currentTurn, setCurrentTurn] = useState(
     data.turnO ? "Current Turn - O" : "Current Turn - X"
   );
-  const [character, setCharacter] = useLocalStorage<"O" | "X" | undefined>("charater", undefined);
+  const [character, setCharacter] = useLocalStorage<"O" | "X" | undefined>("charater", undefined); //
   const [value, setValue] = useState("");
+
+  const [isLogin] = useAtom(isLoginAtom)
+  const [userData] = useAtom(userDataAtom)
+
+  // console.log(userData)
 
   const handleCharater = () => {
 
@@ -143,8 +150,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
   }, [data.turnO]);
 
   const handleClick = (i: number) => {
-    if (state[i] !== "" || winner !== "" || character !== "O") return;
-
+    if (isLogin === false || state[i] !== "" || winner !== "" || character !== "O") return;
+    
     if (turnO) {
       let newValueArray = [...state];
       newValueArray[i] = "O";
@@ -161,8 +168,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
   };
 
   const handleDoubleClick = (i: number) => {
-    if (state[i] !== "" || winner !== "" || character !== "X") return;
-
+    if (isLogin === false || state[i] !== "" || winner !== "" || character !== "X") return;
+    
     if (!turnO) {
       let newValueArray = [...state];
       newValueArray[i] = "X";
@@ -214,6 +221,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
   });
 
   const handleReset = async () => {
+    if(isLogin === false) return
+
     setState(initialValue);
     setWinner("");
     setCountO(initialO);
@@ -240,7 +249,10 @@ const GameBoard = ({ data }: GameBoardProps) => {
   );
 
   const handleResetGame = async () => {
+    if(isLogin === false) return
+
     await DeleteGameRefetch();
+    setCharacter(undefined)
     navigate("/");
   };
 
