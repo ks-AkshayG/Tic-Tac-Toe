@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "react-query";
 import { Supabase } from "../config/supabase";
-import { initialO, initialValue, initialX } from "../constants/ConstantValue";
+import { initialValue } from "../constants/ConstantValue";
 
 export type GetDataResponceType = {
   id: number;
@@ -30,8 +30,8 @@ const Home = () => {
         turnO: true,
         winReload: 0,
         winner: "",
-        countO: initialO,
-        countX: initialX,
+        countO: 5,
+        countX: 4,
         countScoreO: 0,
         countScoreX: 0,
         countScoreDraw: 0,
@@ -45,12 +45,12 @@ const Home = () => {
     return data;
   };
 
-  const { refetch } = useQuery("create-game-data", handleCreateData, {
+  const { refetch: dataRefetch } = useQuery("create-game-data", handleCreateData, {
     enabled: false,
   });
 
   const handleNewGame = async () => {
-    const data = await refetch()
+    const data = await dataRefetch()
     // console.log("created");
     // console.log(data.data)
     navigate(`/tictactoe/${data.data?.id}`)

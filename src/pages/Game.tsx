@@ -10,8 +10,8 @@ export type GetSingleUserData = {
     turnO: boolean
     winReload: number
     winner: string
-    countO: string[]
-    countX: string[]
+    countO: number
+    countX: number
     countScoreO: number
     countScoreX: number
     countScoreDraw: number
@@ -42,7 +42,6 @@ const Game = () => {
     })
 
     // console.log("query data", data)
-
 
   return (
     <div>

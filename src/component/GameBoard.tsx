@@ -10,12 +10,7 @@ import MenuIcon from "../assets/bx-menu.svg";
 import { useQuery, useQueryClient } from "react-query";
 import { Supabase } from "../config/supabase";
 
-import {
-  initialValue,
-  initialO,
-  initialX,
-  winConditions,
-} from "../constants/ConstantValue";
+import { initialValue, winConditions } from "../constants/ConstantValue";
 import { GetSingleUserData } from "../pages/Game";
 import { useLocalStorage } from "usehooks-ts";
 import { useAtom } from "jotai";
@@ -46,16 +41,20 @@ const GameBoard = ({ data }: GameBoardProps) => {
   const [currentTurn, setCurrentTurn] = useState(
     data.turnO ? "Current Turn - O" : "Current Turn - X"
   );
-  const [character, setCharacter] = useLocalStorage<"O" | "X" | undefined>("charater", undefined); //
+  const [character, setCharacter] = useLocalStorage<"O" | "X" | undefined>(
+    "charater",
+    undefined
+  );
+
+  // use to set the character
   const [value, setValue] = useState("");
 
-  const [isLogin] = useAtom(isLoginAtom)
-  // const [userData] = useAtom(userDataAtom)
+  const [isLogin] = useAtom(isLoginAtom);
+  // const [userData] = useAtom(userDataAtom);
 
   // console.log(userData)
 
   const handleCharater = () => {
-
     if (value === "O" || value === "X") {
       setCharacter(value);
     }
@@ -150,8 +149,14 @@ const GameBoard = ({ data }: GameBoardProps) => {
   }, [data.turnO]);
 
   const handleClick = (i: number) => {
-    if (isLogin === false || state[i] !== "" || winner !== "" || character !== "O") return;
-    
+    if (
+      isLogin === false ||
+      state[i] !== "" ||
+      winner !== "" ||
+      character !== "O"
+    )
+      return;
+
     if (turnO) {
       let newValueArray = [...state];
       newValueArray[i] = "O";
@@ -159,17 +164,21 @@ const GameBoard = ({ data }: GameBoardProps) => {
 
       setTurnO(false);
 
-      let newCountO = [...countO];
-      newCountO.pop();
-      setCountO(newCountO);
+      setCountO((prevState) => prevState - 1);
 
       setDrawCountState((prevCount) => prevCount - 1);
     }
   };
 
   const handleDoubleClick = (i: number) => {
-    if (isLogin === false || state[i] !== "" || winner !== "" || character !== "X") return;
-    
+    if (
+      isLogin === false ||
+      state[i] !== "" ||
+      winner !== "" ||
+      character !== "X"
+    )
+      return;
+
     if (!turnO) {
       let newValueArray = [...state];
       newValueArray[i] = "X";
@@ -177,9 +186,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
 
       setTurnO(true);
 
-      let newCountX = [...countX];
-      newCountX.pop();
-      setCountX(newCountX);
+      setCountX((prevState) => prevState - 1);
 
       setDrawCountState((prevCount) => prevCount - 1);
     }
@@ -194,23 +201,43 @@ const GameBoard = ({ data }: GameBoardProps) => {
   };
 
   const handleResetData = async () => {
-    const supares = await Supabase.from("tic-tac-toe")
-      .update({
-        state: initialValue,
-        turnO: turnO,
-        winReload: 0,
-        winner: "",
-        countO: initialO,
-        countX: initialX,
-        countScoreO: countScoreO,
-        countScoreX: countScoreX,
-        countScoreDraw: countScoreDraw,
-        drawCountState: 9,
-        currentTurn: currentTurn,
-      })
-      .eq("id", GameID);
+    if (turnO === true) {
+      const supares = await Supabase.from("tic-tac-toe")
+        .update({
+          state: initialValue,
+          turnO: turnO,
+          winReload: 0,
+          winner: "",
+          countO: 5,
+          countX: 4,
+          countScoreO: countScoreO,
+          countScoreX: countScoreX,
+          countScoreDraw: countScoreDraw,
+          drawCountState: 9,
+          currentTurn: currentTurn,
+        })
+        .eq("id", GameID);
 
-    return supares;
+      return supares;
+    } else {
+      const supares = await Supabase.from("tic-tac-toe")
+        .update({
+          state: initialValue,
+          turnO: turnO,
+          winReload: 0,
+          winner: "",
+          countO: 4,
+          countX: 5,
+          countScoreO: countScoreO,
+          countScoreX: countScoreX,
+          countScoreDraw: countScoreDraw,
+          drawCountState: 9,
+          currentTurn: currentTurn,
+        })
+        .eq("id", GameID);
+
+      return supares;
+    }
   };
 
   const { refetch: ResetRefetch } = useQuery("reset-data", handleResetData, {
@@ -221,12 +248,18 @@ const GameBoard = ({ data }: GameBoardProps) => {
   });
 
   const handleReset = async () => {
-    if(isLogin === false) return
+    if (isLogin === false) return;
+
+    if (turnO === true) {
+      setCountO(5);
+      setCountX(4);
+    } else {
+      setCountO(4);
+      setCountX(5);
+    }
 
     setState(initialValue);
     setWinner("");
-    setCountO(initialO);
-    setCountX(initialX);
     setDrawCountState(9);
     setWinReload(0);
     await ResetRefetch();
@@ -249,10 +282,10 @@ const GameBoard = ({ data }: GameBoardProps) => {
   );
 
   const handleResetGame = async () => {
-    if(isLogin === false) return
+    if (isLogin === false) return;
 
     await DeleteGameRefetch();
-    setCharacter(undefined)
+    setCharacter(undefined);
     navigate("/");
   };
 
@@ -319,7 +352,10 @@ const GameBoard = ({ data }: GameBoardProps) => {
       )}
       {character && ScoreData && (
         <div>
-          <h2 className="w-full text-start text-[20px] flex items-center">GameID: <span className=" text-green-700 text-[30px] ml-1">{GameID}</span></h2>
+          <h2 className="w-full text-start text-[20px] flex items-center">
+            GameID:
+            <span className=" text-green-700 text-[30px] ml-1">{GameID}</span>
+          </h2>
           <div className=" w-full flex flex-row justify-around">
             <Score character="O" score={ScoreData.countScoreO} />
             <Score character="Draw" score={ScoreData.countScoreDraw} />
@@ -327,13 +363,18 @@ const GameBoard = ({ data }: GameBoardProps) => {
           </div>
           <div className="w-full flex flex-row justify-evenly items-center">
             <div>
-              <Chances chances={ScoreData.countO} />
+              <Chances character="O" chances={ScoreData.countO} />
             </div>
             <div className="flex flex-col">
               <div className="text-center text-[40px] mb-5">
                 <CurrentTurn turn={winnerAnnounce()} />
               </div>
-              <p className="w-full text-start text-[20px] flex items-center">You are playing as <span className=" text-red-700 text-[30px] ml-1">{character}</span></p>
+              <p className="w-full text-start text-[20px] flex items-center">
+                You are playing as
+                <span className=" text-red-700 text-[30px] ml-1">
+                  {character}
+                </span>
+              </p>
               <div className="flex justify-center items-center flex-row text-[100px]">
                 <SingleSquareBoard
                   value={ScoreData.state[0]}
@@ -396,7 +437,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
               </div>
             </div>
             <div>
-              <Chances chances={ScoreData.countX} />
+              <Chances character="X" chances={ScoreData.countX} />
             </div>
           </div>
           <div className=" w-[80vw] text-end flex flex-col justify-end items-end relative">

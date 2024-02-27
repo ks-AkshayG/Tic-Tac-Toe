@@ -1,6 +1,4 @@
 export const initialValue: string[] = new Array(9).fill('')
-export const initialO: string[] = ["O","O","O","O","O"]
-export const initialX: string[] = ["X","X","X","X","X"]
 
 export const winConditions = [
   [0,1,2],

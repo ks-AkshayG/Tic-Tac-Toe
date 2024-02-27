@@ -1,17 +1,16 @@
 type ChancesProps = {
-  chances: string[]
+  character: "X" | "O"
+  chances: number
 }
 
-const Chances = ({chances}: ChancesProps) => {
+const Chances = ({character, chances}: ChancesProps) => {
 
-    // const value = useChancesContext()
-
-    // console.log(value, ' From Chances Component')
+  const divs = new Array(chances).fill(character)
 
   return (
     <div className='text-[50px]'>
         {
-            chances.map((chance, index) => <div key={index}>{chance}</div>)
+            divs.map((chance, index) => <div key={index}>{chance}</div>)
         }
     </div>
   )
