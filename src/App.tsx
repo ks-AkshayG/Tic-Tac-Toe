@@ -1,10 +1,15 @@
+import { useEffect, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { useAtom, useSetAtom } from "jotai";
 import { Supabase } from "./config/supabase";
+
 import Home from "./pages/Home";
 import Game from "./pages/Game";
+import MyGames from "./pages/MyGames";
+
 import SupabaseLogin from "./component/SupabaseLogin";
 import SupabaseRegister from "./component/SupabaseRegister";
+
 import {
   isLoginAtom,
   loginEmailAtom,
@@ -14,7 +19,8 @@ import {
   registerUsernameAtom,
   userDataAtom,
 } from "./constants/JotaiAtoms";
-import { useEffect, useState } from "react";
+
+import { Button } from "./component/ui/button";
 
 // -------------------------------------------------------------------------------------------------
 
@@ -141,28 +147,29 @@ const App = () => {
           {/* Navigation bar */}
           <nav>
             <ul className="flex flex-row justify-between items-center px-3 py-2 bg-gray-900">
-              <li className="text-white">
-                <Link to={`/`}>Home</Link>
+              <li className="text-white text-[23px]">
+                <Link to={`/`} className="ml-2 mr-5 underline">Home</Link>
+                <Link to={`/mygames`} className="ml-2 mr-5 underline">My Games</Link>
               </li>
               <li>
                 {isLogin ? (
-                  <button
+                  <Button
                     className="border border-white text-white px-3 rounded-md text-[20px] hover:text-red-600 hover:border-red-600"
                     onClick={handleLogout}
                   >
                     Logout
-                  </button>
+                  </Button>
                 ) : (
                   <>
                     <Link to={`/register`}>
-                      <button className="border border-white text-white px-3 rounded-md text-[20px] hover:text-green-600 hover:border-green-600">
+                      <Button className="border border-white text-white px-3 rounded-md text-[20px] hover:text-green-600 hover:border-green-600">
                         Register
-                      </button>
+                      </Button>
                     </Link>
                     <Link to={`/login`}>
-                      <button className="border border-white text-white px-3 rounded-md text-[20px] hover:text-green-600 hover:border-green-600 mx-2">
+                      <Button className="border border-white text-white px-3 rounded-md text-[20px] hover:text-green-600 hover:border-green-600 mx-2">
                         Login
-                      </button>
+                      </Button>
                     </Link>
                   </>
                 )}
@@ -174,6 +181,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/tictactoe/:GameID" element={<Game />} />
+            <Route path="/mygames" element={<MyGames />} />
             <Route
               path="/login"
               element={

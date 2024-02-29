@@ -4,6 +4,16 @@ import { Supabase } from "../config/supabase";
 import { useAtom } from "jotai";
 import { isLoginAtom, userDataAtom } from "../constants/JotaiAtoms";
 import { initialValue } from "../constants/ConstantValue";
+import { Button } from "@/component/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/component/ui/table"
 
 export type GetDataResponceType = {
   id: number;
@@ -213,49 +223,47 @@ const Home = () => {
       <h1 className="w-full text-[70px] text-lime-600">Tic - Tac - Toe</h1>
 
       {/* Create new game button */}
-      <button
-        className="border border-black py-1 px-3 rounded-xl text-[30px] hover:text-green-600 hover:border-green-600"
+      <Button
+        className="text-[27px]"
         onClick={handleNewGame}
       >
         New Game
-      </button>
+      </Button>
 
       {/* Goto existing game button */}
-      <button
-        className="border border-black py-1 px-3 rounded-xl text-[30px] hover:text-green-600 hover:border-green-600 ml-2"
+      <Button
+        className="text-[27px] mx-2"
         onClick={handleExistingGame}
       >
         Existing Game
-      </button>
+      </Button>
 
-      <p className="w-full text-[24px] mt-10 text-teal-500">Top5 Playes</p>
-      <div className="w-full flex justify-center mt-3">
-        {/* Table of user states */}
-        <table className="w-[70vw] border border-black">
-          {/* Table header */}
-          <thead className="border border-black">
-            <tr className="border border-black">
-              <td className="border border-black">Username</td>
-              <td className="border border-black">Win</td>
-              <td className="border border-black">Loss</td>
-              <td className="border border-black">Draw</td>
-            </tr>
-          </thead>
+      <div className="w-full flex justify-center mt-[100px]">
+        <Table className="w-[70vw] border border-black">
+          <TableCaption className=" text-[30px]">Top 5 Players</TableCaption>
 
-          {/* Table body */}
-          <tbody>
-            {userMatches?.map((user) => (
-              <tr key={user.id}>
-                <td className="border border-black text-start px-2">
-                  {user.user_name}
-                </td>
-                <td className="border border-black">{user.user_win}</td>
-                <td className="border border-black">{user.user_loss}</td>
-                <td className="border border-black">{user.user_draw}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-center">Username</TableHead>
+              <TableHead className="text-center">Win</TableHead>
+              <TableHead className="text-center">Loss</TableHead>
+              <TableHead className="text-center">Draw</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {
+              userMatches?.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="text-left">{user.user_name}</TableCell>
+                  <TableCell>{user.user_win}</TableCell>
+                  <TableCell>{user.user_loss}</TableCell>
+                  <TableCell>{user.user_draw}</TableCell>
+                </TableRow>
+              ))
+            }
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

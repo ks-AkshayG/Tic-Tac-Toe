@@ -1,3 +1,5 @@
+import { Button } from "./ui/button"
+
 type SingleSquareBoardProps = {
   onClick: () => void  
   onDoubleClick: () => void
@@ -7,9 +9,9 @@ type SingleSquareBoardProps = {
 const SingleSquareBoard = ({onClick, onDoubleClick, value}: SingleSquareBoardProps) => {
 
   return (
-    <button className='w-[170px] h-[170px] border-4 border-zinc-900 px-[50px] cursor-pointer' onClick={onClick} onDoubleClick={onDoubleClick}>
+    <Button className='w-[170px] h-[170px] border-4 border-gray-300 text-[130px] cursor-pointer ' onClick={onClick} onDoubleClick={onDoubleClick}>
         {value}
-    </button>
+    </Button>
   )
 }
 

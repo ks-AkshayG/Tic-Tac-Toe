@@ -5,6 +5,9 @@ import CurrentTurn from "./CurrentTurn";
 import Chances from "./Chances";
 import Score from "./Score";
 
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
 import { useQuery, useQueryClient } from "react-query";
 import { Supabase } from "../config/supabase";
 
@@ -386,29 +389,29 @@ const GameBoard = ({ data }: GameBoardProps) => {
   /**
    * Query for delete the game ID permanently
    */
-  const handleDeleteData = async () => {
-    const supares = await Supabase.from("tic-tac-toe")
-      .delete()
-      .eq("id", GameID);
+  // const handleDeleteData = async () => {
+  //   const supares = await Supabase.from("tic-tac-toe")
+  //     .delete()
+  //     .eq("id", GameID);
 
-    return supares;
-  };
+  //   return supares;
+  // };
 
-  const { refetch: DeleteGameRefetch } = useQuery(
-    "delete-game-data",
-    handleDeleteData,
-    {
-      enabled: false,
-    }
-  );
+  // const { refetch: DeleteGameRefetch } = useQuery(
+  //   "delete-game-data",
+  //   handleDeleteData,
+  //   {
+  //     enabled: false,
+  //   }
+  // );
 
   /**
    * Function for handle delete query
    */
   const handleExitGame = async () => {
-    if (isLogin === false) return;
+    // if (isLogin === false) return;
 
-    await DeleteGameRefetch();
+    // await DeleteGameRefetch();
     setCharacter(undefined);
     navigate("/");
   };
@@ -455,19 +458,19 @@ const GameBoard = ({ data }: GameBoardProps) => {
         <div>
           <h2 className="my-3 text-[30px]">Enter your character</h2>
           <div className="w-full flex justify-center flex-row">
-            <input
+            <Input
               type="text"
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="'O' or 'X'"
               className="text-green-600 px-3"
             />
-            <button
+            <Button
               onClick={handleCharater}
               className="border border-black mx-2 px-3 rounded-md"
             >
               Select
-            </button>
+            </Button>
           </div>
           {value !== "" && value !== "X" && value !== "O" && (
             <p className="my-2 text-red-600">Enter the correct choice</p>
@@ -491,7 +494,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
           </div>
 
           {/* Game section */}
-          <div className="w-full flex flex-row justify-evenly items-center">
+          <div className="w-[80vw] flex flex-row justify-evenly items-center">
             {/* Right chances section */}
             <div>
               <Chances character="O" chances={ScoreData.countO} />
@@ -568,21 +571,21 @@ const GameBoard = ({ data }: GameBoardProps) => {
                 {/* New game button, Visible when user won/loss/draw */}
                 {
                   winner !== "" &&
-                  <button
-                  className="border border-zinc-900 cursor-pointer text-[26px] mt-[30px] py-[10px] px-[30px] rounded-3xl hover:bg-black hover:text-white"
+                  <Button
+                  className="text-[26px] mt-[30px]"
                   onClick={handleReset}
                   >
                     New
-                  </button>
+                  </Button>
                 } 
 
                 {/* Game exit button */}
-                <button
-                  className="border border-zinc-900 cursor-pointer text-[26px] mt-[30px] py-[10px] px-[30px] rounded-3xl hover:bg-black hover:text-white"
+                <Button
+                  className="text-[26px] mt-[30px]"
                   onClick={handleExitGame}
                 >
                   Exit
-                </button>
+                </Button>
               </div>
             </div>
 
