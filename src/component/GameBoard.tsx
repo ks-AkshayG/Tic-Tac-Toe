@@ -4,8 +4,6 @@ import SingleSquareBoard from "./SingleSquareBoard";
 import CurrentTurn from "./CurrentTurn";
 import Chances from "./Chances";
 import Score from "./Score";
-import MenuButton from "./MenuButton";
-import MenuIcon from "../assets/bx-menu.svg";
 
 import { useQuery, useQueryClient } from "react-query";
 import { Supabase } from "../config/supabase";
@@ -28,7 +26,6 @@ const GameBoard = ({ data }: GameBoardProps) => {
   // console.log(data)
 
   const [state, setState] = useState(data.state);
-  const [menu, setMenu] = useState(false);
   const [turnO, setTurnO] = useState(data.turnO);
   const [winReload, setWinReload] = useState(data.winReload);
   const [winner, setWinner] = useState(data.winner);
@@ -313,13 +310,6 @@ const GameBoard = ({ data }: GameBoardProps) => {
   }, [turnO]);
 
   /**
-   * Toggle the menu button
-   */
-  const handleMenu = () => {
-    setMenu((prevState) => !prevState);
-  };
-
-  /**
    * Query to reset the data on database
    */
   const handleResetData = async () => {
@@ -415,23 +405,13 @@ const GameBoard = ({ data }: GameBoardProps) => {
   /**
    * Function for handle delete query
    */
-  const handleResetGame = async () => {
+  const handleExitGame = async () => {
     if (isLogin === false) return;
 
     await DeleteGameRefetch();
     setCharacter(undefined);
     navigate("/");
   };
-
-  /**
-   * Variable for visibility of new game button
-   */
-  const hidden: React.CSSProperties =
-    winner === ""
-      ? drawCountState !== 10
-        ? { visibility: "hidden" }
-        : { visibility: "visible" }
-      : { visibility: "visible" };
 
   /**
    * Query for get data from databse that shows on clients
@@ -584,14 +564,24 @@ const GameBoard = ({ data }: GameBoardProps) => {
                 />
               </div>
 
-              {/* New game button, visible when user won/loss/draw */}
-              <div>
-                <button
-                  style={hidden}
-                  className="border border-green-600 mt-[30px] py-[15px] px-[30px] rounded-3xl hover:bg-green-600 "
+              <div className="flex justify-evenly">
+                {/* New game button, Visible when user won/loss/draw */}
+                {
+                  winner !== "" &&
+                  <button
+                  className="border border-zinc-900 cursor-pointer text-[26px] mt-[30px] py-[10px] px-[30px] rounded-3xl hover:bg-black hover:text-white"
                   onClick={handleReset}
+                  >
+                    New
+                  </button>
+                } 
+
+                {/* Game exit button */}
+                <button
+                  className="border border-zinc-900 cursor-pointer text-[26px] mt-[30px] py-[10px] px-[30px] rounded-3xl hover:bg-black hover:text-white"
+                  onClick={handleExitGame}
                 >
-                  New Game
+                  Exit
                 </button>
               </div>
             </div>
@@ -600,22 +590,6 @@ const GameBoard = ({ data }: GameBoardProps) => {
             <div>
               <Chances character="X" chances={ScoreData.countX} />
             </div>
-          </div>
-          <div className=" w-[80vw] text-end flex flex-col justify-end items-end relative">
-            {/* Menu bar */}
-            <div className=" absolute bottom-14">
-              {menu && (
-                <MenuButton
-                  resetBoard={handleReset}
-                  resetGame={handleResetGame}
-                />
-              )}
-            </div>
-
-            {/* Menu button for handle game states */}
-            <button onClick={handleMenu}>
-              <img src={MenuIcon} alt="Menu" className="w-[57px]" />
-            </button>
           </div>
         </div>
       )}
