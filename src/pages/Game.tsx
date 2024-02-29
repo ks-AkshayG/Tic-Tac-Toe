@@ -2,23 +2,7 @@ import { Supabase } from "../config/supabase";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import GameBoard from "../component/GameBoard";
-
-export type GetSingleUserData = {
-  id: number;
-  created_at: string;
-  state: string[];
-  turnO: boolean;
-  winReload: number;
-  winner: string;
-  countO: number;
-  countX: number;
-  countScoreO: number;
-  countScoreX: number;
-  countScoreDraw: number;
-  drawCountState: number;
-  currentTurn: string;
-  winCharacter: string;
-};
+import { GetDataResponceType } from "./Home";
 
 const Game = () => {
   const { GameID } = useParams();
@@ -32,7 +16,7 @@ const Game = () => {
       .eq("id", GameID)
       .single();
 
-    const data = supares.data as GetSingleUserData;
+    const data = supares.data as GetDataResponceType;
     // console.log('supabase data', data)
 
     return data;

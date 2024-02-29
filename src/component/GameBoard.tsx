@@ -12,13 +12,13 @@ import { useQuery, useQueryClient } from "react-query";
 import { Supabase } from "../config/supabase";
 
 import { initialValue, winConditions } from "../constants/ConstantValue";
-import { GetSingleUserData } from "../pages/Game";
 import { useLocalStorage } from "usehooks-ts";
 import { useAtom } from "jotai";
 import { isLoginAtom, userDataAtom } from "../constants/JotaiAtoms";
+import { GetDataResponceType } from "@/pages/Home";
 
 type GameBoardProps = {
-  data: GetSingleUserData;
+  data: GetDataResponceType;
 };
 
 const GameBoard = ({ data }: GameBoardProps) => {
@@ -47,6 +47,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     "charater",
     undefined
   );
+  const [userActivity, setUserActivity] = useState(data.user_activity);
+
+  // console.log(userActivity);
 
   // use to set the character
   const [value, setValue] = useState("");
@@ -168,6 +171,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
         drawCountState,
         currentTurn,
         winCharacter,
+        userActivity
       })
       .eq("id", GameID);
 
@@ -253,6 +257,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
     setDrawCountState(data.drawCountState);
     setCurrentTurn(data.currentTurn);
     setWinCharacter(data.winCharacter);
+    // setUserActivity(data.user_activity);
   }, [data.turnO, data.state]);
 
   /**
@@ -263,7 +268,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
       isLogin === false ||
       state[i] !== "" ||
       winner !== "" ||
-      character !== "O"
+      character !== "O" ||
+      userData === undefined
     )
       return;
 
@@ -277,6 +283,25 @@ const GameBoard = ({ data }: GameBoardProps) => {
       setCountO((prevState) => prevState - 1);
 
       setDrawCountState((prevCount) => prevCount - 1);
+
+      if (userActivity === null) {
+        setUserActivity([
+          {
+            user_name: userData.user.user_metadata.full_name,
+            user_email: userData.user.user_metadata.email,
+            character: "O",
+          },
+        ]);
+      } else {
+        setUserActivity((prevActivity) => [
+          ...prevActivity,
+          {
+            user_name: userData.user.user_metadata.full_name,
+            user_email: userData.user.user_metadata.email,
+            character: "O",
+          },
+        ]);
+      }
     }
   };
 
@@ -288,7 +313,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
       isLogin === false ||
       state[i] !== "" ||
       winner !== "" ||
-      character !== "X"
+      character !== "X" ||
+      userData === undefined
     )
       return;
 
@@ -302,6 +328,25 @@ const GameBoard = ({ data }: GameBoardProps) => {
       setCountX((prevState) => prevState - 1);
 
       setDrawCountState((prevCount) => prevCount - 1);
+
+      if (userActivity === null) {
+        setUserActivity([
+          {
+            user_name: userData.user.user_metadata.full_name,
+            user_email: userData.user.user_metadata.email,
+            character: "X",
+          },
+        ]);
+      } else {
+        setUserActivity((prevActivity) => [
+          ...prevActivity,
+          {
+            user_name: userData.user.user_metadata.full_name,
+            user_email: userData.user.user_metadata.email,
+            character: "X",
+          },
+        ]);
+      }
     }
   };
 
@@ -331,6 +376,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
           drawCountState: 9,
           currentTurn: currentTurn,
           winCharacter: "",
+          userActivity: [],
         })
         .eq("id", GameID);
 
@@ -350,6 +396,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
           drawCountState: 9,
           currentTurn: currentTurn,
           winCharacter: "",
+          userActivity: [],
         })
         .eq("id", GameID);
 
@@ -378,6 +425,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
       setCountX(5);
     }
 
+    setUserActivity([]);
     setWinCharacter("");
     setState(initialValue);
     setWinner("");
@@ -417,7 +465,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
   };
 
   /**
-   * Query for get data from databse that shows on clients
+   * Query for get data from database that shows on clients
    */
   const handleGetScoreData = async () => {
     const supares = await Supabase.from("tic-tac-toe")
@@ -425,7 +473,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
       .eq("id", GameID)
       .single();
 
-    const data = supares.data as GetSingleUserData;
+    const data = supares.data as GetDataResponceType;
 
     return data;
   };
@@ -569,15 +617,14 @@ const GameBoard = ({ data }: GameBoardProps) => {
 
               <div className="flex justify-evenly">
                 {/* New game button, Visible when user won/loss/draw */}
-                {
-                  winner !== "" &&
+                {winner !== "" && (
                   <Button
-                  className="text-[26px] mt-[30px]"
-                  onClick={handleReset}
+                    className="text-[26px] mt-[30px]"
+                    onClick={handleReset}
                   >
                     New
                   </Button>
-                } 
+                )}
 
                 {/* Game exit button */}
                 <Button

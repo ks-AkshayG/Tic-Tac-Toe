@@ -22,14 +22,19 @@ export type GetDataResponceType = {
   turnO: boolean;
   winReload: number;
   winner: string;
-  countO: string[];
-  countX: string[];
+  countO: number;
+  countX: number;
   countScoreO: number;
   countScoreX: number;
   countScoreDraw: number;
   drawCountState: number;
   currentTurn: string;
   winCharacter: string;
+  user_activity: {
+    user_name: string
+    user_email: string
+    character: string
+  }[]
 };
 
 export type GetUserResponceType = {
@@ -66,6 +71,7 @@ const Home = () => {
         drawCountState: 9,
         currentTurn: "Current Turn - O",
         winCharacter: "",
+        user_activity: []
       })
       .select()
       .single();
