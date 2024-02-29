@@ -12,7 +12,7 @@ import {
   registerEmailAtom,
   registerPasswordAtom,
   registerUsernameAtom,
-  userDataAtom
+  userDataAtom,
 } from "./constants/JotaiAtoms";
 import { useEffect, useState } from "react";
 
@@ -33,24 +33,33 @@ const App = () => {
 
   const navigate = useNavigate();
 
+  /**
+   * Store the token locally
+   */
   useEffect(() => {
     const timeoutID = setTimeout(() => {
-      setTokenData(localStorage.getItem('sb-nemmkyvqcyblzgeinkpf-auth-token'))
-    }, 500) // critical value: 226
+      setTokenData(localStorage.getItem("sb-nemmkyvqcyblzgeinkpf-auth-token"));
+    }, 500); // critical value: 226
 
     return () => {
-      clearTimeout(timeoutID)
-    }
-  },[])
+      clearTimeout(timeoutID);
+    };
+  }, []);
 
+  /**
+   * Set the user has logged in
+   */
   useEffect(() => {
-    if(tokenData !== null){
+    if (tokenData !== null) {
       // console.log(tokenData)
-      setIsLogin(true)
-      setUserData(JSON.parse(tokenData))
+      setIsLogin(true);
+      setUserData(JSON.parse(tokenData));
     }
-  }, [tokenData])
+  }, [tokenData]);
 
+  /**
+   * Function for email registration
+   */
   const handleEmailRegister = async () => {
     const { data } = await Supabase.auth.signUp({
       email: registerEmail,
@@ -63,63 +72,73 @@ const App = () => {
         emailRedirectTo: "http://localhost:5173",
       },
     });
-    if(data.user !== null){
-      alert('We have send an email to you, please confirm your registration')
-      setRegisterUsername('')
-      setRegisterEmail('')
-      setRegisterPassword('')
+    if (data.user !== null) {
+      alert("We have send an email to you, please confirm your registration");
+      setRegisterUsername("");
+      setRegisterEmail("");
+      setRegisterPassword("");
     }
-    console.log('registration data', data);
+    // console.log("registration data", data);
   };
 
+  /**
+   * Function for google registration/login
+   */
   const handleGoogleLogin = async () => {
-    const { data, error } = await Supabase.auth.signInWithOAuth({
+    const { data } = await Supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: "http://localhost:5173",
         queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
+          access_type: "offline",
+          prompt: "consent",
         },
       },
-    })
+    });
     if (data) {
-      navigate('/')
+      navigate("/");
     }
-    console.log(error);
+    // console.log(error);
   };
 
+  /**
+   * Function for login with google
+   */
   const handleEmailLogin = async () => {
-
     const { data, error } = await Supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword,
     });
     if (data.user !== null) {
       setIsLogin(true);
-      setLoginEmail('')
-      setLoginPassword('')
+      setLoginEmail("");
+      setLoginPassword("");
       navigate("/");
     }
-    if(error){
-      alert(error.message)
+    if (error) {
+      alert(error.message);
     }
-    console.log('login email error', error);
+    // console.log("login email error", error);
   };
 
-  const handleGoogleLogout = async () => {
+  /**
+   * Function for logout user
+   */
+  const handleLogout = async () => {
     const { error } = await Supabase.auth.signOut();
     if (!error) {
-      setTokenData(null)
+      setTokenData(null);
       setIsLogin(false);
+      setUserData(undefined);
     }
-    console.log('logout error',error);
+    // console.log("logout error", error);
   };
 
   return (
     <>
       <div className="w-[100vw] h-[100vh] bg-gray-300 flex flex-col">
         <div className="w-full text-center">
+          {/* Navigation bar */}
           <nav>
             <ul className="flex flex-row justify-between items-center px-3 py-2 bg-gray-900">
               <li className="text-white">
@@ -129,7 +148,7 @@ const App = () => {
                 {isLogin ? (
                   <button
                     className="border border-white text-white px-3 rounded-md text-[20px] hover:text-red-600 hover:border-red-600"
-                    onClick={handleGoogleLogout}
+                    onClick={handleLogout}
                   >
                     Logout
                   </button>
@@ -151,6 +170,7 @@ const App = () => {
             </ul>
           </nav>
 
+          {/* Routes for all pages */}
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/tictactoe/:GameID" element={<Game />} />
@@ -177,6 +197,6 @@ const App = () => {
       </div>
     </>
   );
-}
+};
 
 export default App;

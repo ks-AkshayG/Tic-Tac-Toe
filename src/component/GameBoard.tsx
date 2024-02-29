@@ -14,7 +14,7 @@ import { initialValue, winConditions } from "../constants/ConstantValue";
 import { GetSingleUserData } from "../pages/Game";
 import { useLocalStorage } from "usehooks-ts";
 import { useAtom } from "jotai";
-import { isLoginAtom } from "../constants/JotaiAtoms";
+import { isLoginAtom, userDataAtom } from "../constants/JotaiAtoms";
 
 type GameBoardProps = {
   data: GetSingleUserData;
@@ -41,6 +41,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
   const [currentTurn, setCurrentTurn] = useState(
     data.turnO ? "Current Turn - O" : "Current Turn - X"
   );
+  const [winCharacter, setWinCharacter] = useState(data.winCharacter);
+
   const [character, setCharacter] = useLocalStorage<"O" | "X" | undefined>(
     "charater",
     undefined
@@ -50,10 +52,13 @@ const GameBoard = ({ data }: GameBoardProps) => {
   const [value, setValue] = useState("");
 
   const [isLogin] = useAtom(isLoginAtom);
-  // const [userData] = useAtom(userDataAtom);
+  const [userData] = useAtom(userDataAtom);
 
   // console.log(userData)
 
+  /**
+   * Set the user character
+   */
   const handleCharater = () => {
     if (value === "O" || value === "X") {
       setCharacter(value);
@@ -61,6 +66,93 @@ const GameBoard = ({ data }: GameBoardProps) => {
   };
   // console.log(character);
 
+  /**
+   * Get the user states
+   */
+  const handleUserScore = async () => {
+    const supares = await Supabase.from("tic-tac-toe-users")
+      .select()
+      .eq("user_email", userData?.user.user_metadata.email)
+      .single();
+
+    const data = supares.data;
+    // console.log("update", status);
+
+    return data;
+  };
+
+  const { refetch: userScoreRefetch } = useQuery(
+    "update-data",
+    handleUserScore,
+    {
+      enabled: false,
+    }
+  );
+
+  /**
+   * Update the user states
+   */
+  useEffect(() => {
+    const updateUser = async () => {
+      if (userData === undefined) return;
+
+      /**
+       * Update the user winner
+       */
+      if (winner !== "") {
+        if (winCharacter === character) {
+          const user = await userScoreRefetch();
+
+          const win = user.data.user_win;
+
+          await Supabase.from("tic-tac-toe-users")
+            .update({
+              user_win: win + 1,
+            })
+            .eq("user_email", userData.user.user_metadata.email);
+        }
+      }
+
+      /**
+       * Update the user draw
+       */
+      if (winner !== "" && winner !== "Match Draw") {
+        if (winCharacter !== character) {
+          const user = await userScoreRefetch();
+
+          const loss = user.data.user_loss;
+
+          await Supabase.from("tic-tac-toe-users")
+            .update({
+              user_loss: loss + 1,
+            })
+            .eq("user_email", userData.user.user_metadata.email);
+        }
+      }
+
+      /**
+       * Update the user loss
+       */
+      if (winner === "Match Draw") {
+        const user = await userScoreRefetch();
+
+        if (user.data) {
+          const draw = user.data.user_draw;
+
+          await Supabase.from("tic-tac-toe-users")
+            .update({
+              user_draw: draw + 1,
+            })
+            .eq("user_email", userData.user.user_metadata.email);
+        }
+      }
+    };
+    updateUser();
+  }, [winner]);
+
+  /**
+   * Update the game states
+   */
   const handleUpdateData = async () => {
     const supares = await Supabase.from("tic-tac-toe")
       .update({
@@ -75,11 +167,12 @@ const GameBoard = ({ data }: GameBoardProps) => {
         countScoreDraw,
         drawCountState,
         currentTurn,
+        winCharacter,
       })
       .eq("id", GameID);
 
     const status = supares.status;
-    console.log("update", status);
+    // console.log("update", status);
 
     return status;
   };
@@ -91,16 +184,20 @@ const GameBoard = ({ data }: GameBoardProps) => {
     },
   });
 
+  /**
+   * Funtion for checks the winner
+   */
   const handleWinner = async () => {
     if (winReload !== 0) return;
 
     for (let i = 0; i < winConditions.length; i++) {
       let [a, b, c] = winConditions[i];
       if (state[a] !== "" && state[a] === state[b] && state[a] === state[c]) {
-        setWinner(`Congratulations! ${state[a]} Won`);
+        setWinCharacter(state[a]);
         state[a] === "O"
           ? setCountScoreO((prevCount) => prevCount + 1)
           : setCountScoreX((prevCount) => prevCount + 1);
+        setWinner(`Congratulations! ${state[a]} Won`);
         setWinReload(1);
         return true;
       }
@@ -108,7 +205,10 @@ const GameBoard = ({ data }: GameBoardProps) => {
     return false;
   };
 
-  let handleDraw = async () => {
+  /**
+   * function for checks the draw
+   */
+  const handleDraw = async () => {
     if (winReload !== 0) return;
 
     const isWinner = await handleWinner();
@@ -123,6 +223,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     }
   };
 
+  /**
+   * Update the data based on user action
+   */
   useEffect(() => {
     const handleRender = async () => {
       await handleDraw();
@@ -134,6 +237,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     handleRender();
   }, [turnO]);
 
+  /**
+   * Update the local states based on database updates
+   */
   useEffect(() => {
     setState(data.state);
     setTurnO(data.turnO);
@@ -146,8 +252,12 @@ const GameBoard = ({ data }: GameBoardProps) => {
     setCountScoreDraw(data.countScoreDraw);
     setDrawCountState(data.drawCountState);
     setCurrentTurn(data.currentTurn);
-  }, [data.turnO]);
+    setWinCharacter(data.winCharacter);
+  }, [data.turnO, data.state]);
 
+  /**
+   * Function for action "O"
+   */
   const handleClick = (i: number) => {
     if (
       isLogin === false ||
@@ -170,6 +280,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     }
   };
 
+  /**
+   * Function for action "X"
+   */
   const handleDoubleClick = (i: number) => {
     if (
       isLogin === false ||
@@ -192,14 +305,23 @@ const GameBoard = ({ data }: GameBoardProps) => {
     }
   };
 
+  /**
+   * Set the current turn when turnO changes
+   */
   useEffect(() => {
     setCurrentTurn(turnO ? "Current Turn - O" : "Current Turn - X");
   }, [turnO]);
 
+  /**
+   * Toggle the menu button
+   */
   const handleMenu = () => {
     setMenu((prevState) => !prevState);
   };
 
+  /**
+   * Query to reset the data on database
+   */
   const handleResetData = async () => {
     if (turnO === true) {
       const supares = await Supabase.from("tic-tac-toe")
@@ -215,6 +337,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
           countScoreDraw: countScoreDraw,
           drawCountState: 9,
           currentTurn: currentTurn,
+          winCharacter: "",
         })
         .eq("id", GameID);
 
@@ -233,6 +356,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
           countScoreDraw: countScoreDraw,
           drawCountState: 9,
           currentTurn: currentTurn,
+          winCharacter: "",
         })
         .eq("id", GameID);
 
@@ -247,6 +371,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     },
   });
 
+  /**
+   * Function for reset the game states locally
+   */
   const handleReset = async () => {
     if (isLogin === false) return;
 
@@ -258,6 +385,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
       setCountX(5);
     }
 
+    setWinCharacter("");
     setState(initialValue);
     setWinner("");
     setDrawCountState(9);
@@ -265,6 +393,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     await ResetRefetch();
   };
 
+  /**
+   * Query for delete the game ID permanently
+   */
   const handleDeleteData = async () => {
     const supares = await Supabase.from("tic-tac-toe")
       .delete()
@@ -281,6 +412,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     }
   );
 
+  /**
+   * Function for handle delete query
+   */
   const handleResetGame = async () => {
     if (isLogin === false) return;
 
@@ -289,6 +423,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
     navigate("/");
   };
 
+  /**
+   * Variable for visibility of new game button
+   */
   const hidden: React.CSSProperties =
     winner === ""
       ? drawCountState !== 10
@@ -296,6 +433,9 @@ const GameBoard = ({ data }: GameBoardProps) => {
         : { visibility: "visible" }
       : { visibility: "visible" };
 
+  /**
+   * Query for get data from databse that shows on clients
+   */
   const handleGetScoreData = async () => {
     const supares = await Supabase.from("tic-tac-toe")
       .select()
@@ -310,7 +450,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
   const {
     data: ScoreData,
     refetch: scoreRefetch,
-    isFetching,
+    // isFetching,
   } = useQuery("get-score-data", handleGetScoreData, {
     keepPreviousData: true,
     refetchInterval: 10000,
@@ -319,15 +459,19 @@ const GameBoard = ({ data }: GameBoardProps) => {
     },
   });
 
-  console.log("fetching score", isFetching);
+  // console.log("fetching score", isFetching);
 
+  /**
+   * Function for announce the winner
+   */
   const winnerAnnounce = () => {
     return ScoreData?.winner === "" ? ScoreData.currentTurn : ScoreData?.winner;
   };
 
   return (
     <div className=" w-full flex flex-col justify-center items-center">
-      {!character && (
+      {/* It shows if character is not selected */}
+      {!character && isLogin === true && (
         <div>
           <h2 className="my-3 text-[30px]">Enter your character</h2>
           <div className="w-full flex justify-center flex-row">
@@ -350,31 +494,44 @@ const GameBoard = ({ data }: GameBoardProps) => {
           )}
         </div>
       )}
+
       {character && ScoreData && (
         <div>
+          {/* Shows GameID */}
           <h2 className="w-full text-start text-[20px] flex items-center">
             GameID:
             <span className=" text-green-700 text-[30px] ml-1">{GameID}</span>
           </h2>
+
+          {/* Score section */}
           <div className=" w-full flex flex-row justify-around">
             <Score character="O" score={ScoreData.countScoreO} />
             <Score character="Draw" score={ScoreData.countScoreDraw} />
             <Score character="X" score={ScoreData.countScoreX} />
           </div>
+
+          {/* Game section */}
           <div className="w-full flex flex-row justify-evenly items-center">
+            {/* Right chances section */}
             <div>
               <Chances character="O" chances={ScoreData.countO} />
             </div>
+
             <div className="flex flex-col">
+              {/* Shows the current turn */}
               <div className="text-center text-[40px] mb-5">
                 <CurrentTurn turn={winnerAnnounce()} />
               </div>
+
+              {/* Shows the user character */}
               <p className="w-full text-start text-[20px] flex items-center">
                 You are playing as
                 <span className=" text-red-700 text-[30px] ml-1">
                   {character}
                 </span>
               </p>
+
+              {/* Center game section */}
               <div className="flex justify-center items-center flex-row text-[100px]">
                 <SingleSquareBoard
                   value={ScoreData.state[0]}
@@ -426,6 +583,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
                   onDoubleClick={() => handleDoubleClick(8)}
                 />
               </div>
+
+              {/* New game button, visible when user won/loss/draw */}
               <div>
                 <button
                   style={hidden}
@@ -436,11 +595,14 @@ const GameBoard = ({ data }: GameBoardProps) => {
                 </button>
               </div>
             </div>
+
+            {/* Left chances section */}
             <div>
               <Chances character="X" chances={ScoreData.countX} />
             </div>
           </div>
           <div className=" w-[80vw] text-end flex flex-col justify-end items-end relative">
+            {/* Menu bar */}
             <div className=" absolute bottom-14">
               {menu && (
                 <MenuButton
@@ -449,6 +611,8 @@ const GameBoard = ({ data }: GameBoardProps) => {
                 />
               )}
             </div>
+
+            {/* Menu button for handle game states */}
             <button onClick={handleMenu}>
               <img src={MenuIcon} alt="Menu" className="w-[57px]" />
             </button>
