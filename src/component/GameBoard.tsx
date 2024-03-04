@@ -47,7 +47,10 @@ const GameBoard = ({ data }: GameBoardProps) => {
     "charater",
     undefined
   );
-  const [userActivity, setUserActivity] = useState(data.user_activity);
+
+  const [userActivity, setUserActivity] = useState(() => {
+    return data.userActivity || []
+  });
 
   // console.log(userActivity);
 
@@ -73,9 +76,11 @@ const GameBoard = ({ data }: GameBoardProps) => {
    * Get the user states
    */
   const handleUserScore = async () => {
+    if(userData === undefined) return
+
     const supares = await Supabase.from("tic-tac-toe-users")
       .select()
-      .eq("user_email", userData?.user.user_metadata.email)
+      .eq("user_email", userData.user.user_metadata.email)
       .single();
 
     const data = supares.data;
@@ -154,9 +159,45 @@ const GameBoard = ({ data }: GameBoardProps) => {
   }, [winner]);
 
   /**
+   * Query to handle game records
+   */
+  const handleGameRecord = async() => {
+    if(userData === undefined) return
+
+    const supares = await Supabase.from("tic-tac-toe-games").insert({
+      user_name: userData.user.user_metadata.full_name,
+      user_email: userData.user.user_metadata.email,
+      game_state: state,
+      game_id: GameID,
+      user_states: userActivity,
+      character: character,
+      win_character: winCharacter,
+      winner: winner
+    })
+
+    return supares
+  }
+
+  const {refetch: GameRecordRefetch} = useQuery('each-game-record', handleGameRecord, {
+    enabled: false
+  })
+
+  useEffect(() => {
+    if(winner === '') return
+
+    const handleRecords = async() => {
+      await GameRecordRefetch()
+    }
+    handleRecords()
+
+  }, [winner])
+
+  /**
    * Update the game states
    */
   const handleUpdateData = async () => {
+    if(userData === undefined) return
+
     const supares = await Supabase.from("tic-tac-toe")
       .update({
         state,
@@ -257,7 +298,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
     setDrawCountState(data.drawCountState);
     setCurrentTurn(data.currentTurn);
     setWinCharacter(data.winCharacter);
-    // setUserActivity(data.user_activity);
+    setUserActivity(data.userActivity);
   }, [data.turnO, data.state]);
 
   /**
@@ -284,24 +325,19 @@ const GameBoard = ({ data }: GameBoardProps) => {
 
       setDrawCountState((prevCount) => prevCount - 1);
 
-      if (userActivity === null) {
-        setUserActivity([
-          {
-            user_name: userData.user.user_metadata.full_name,
-            user_email: userData.user.user_metadata.email,
-            character: "O",
-          },
-        ]);
-      } else {
-        setUserActivity((prevActivity) => [
-          ...prevActivity,
-          {
-            user_name: userData.user.user_metadata.full_name,
-            user_email: userData.user.user_metadata.email,
-            character: "O",
-          },
-        ]);
-      }
+      setUserActivity((prevActivity) => {
+        const activityArray = prevActivity;
+      
+        const newActivity = {
+          user_name: userData.user.user_metadata.full_name,
+          user_email: userData.user.user_metadata.email,
+          character: "O",
+          index: i
+        };
+      
+        return [...activityArray, newActivity];
+      });
+      
     }
   };
 
@@ -329,24 +365,19 @@ const GameBoard = ({ data }: GameBoardProps) => {
 
       setDrawCountState((prevCount) => prevCount - 1);
 
-      if (userActivity === null) {
-        setUserActivity([
-          {
-            user_name: userData.user.user_metadata.full_name,
-            user_email: userData.user.user_metadata.email,
-            character: "X",
-          },
-        ]);
-      } else {
-        setUserActivity((prevActivity) => [
-          ...prevActivity,
-          {
-            user_name: userData.user.user_metadata.full_name,
-            user_email: userData.user.user_metadata.email,
-            character: "X",
-          },
-        ]);
-      }
+      setUserActivity((prevActivity) => {
+        const activityArray = prevActivity;
+      
+        const newActivity = {
+          user_name: userData.user.user_metadata.full_name,
+          user_email: userData.user.user_metadata.email,
+          character: "X",
+          index: i
+        };
+      
+        return [...activityArray, newActivity];
+      });
+      
     }
   };
 
@@ -481,7 +512,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
   const {
     data: ScoreData,
     refetch: scoreRefetch,
-    // isFetching,
+    isFetching,
   } = useQuery("get-score-data", handleGetScoreData, {
     keepPreviousData: true,
     refetchInterval: 10000,
@@ -490,7 +521,7 @@ const GameBoard = ({ data }: GameBoardProps) => {
     },
   });
 
-  // console.log("fetching score", isFetching);
+  console.log("fetching score", isFetching);
 
   /**
    * Function for announce the winner

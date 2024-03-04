@@ -21,6 +21,7 @@ import {
 } from "./constants/JotaiAtoms";
 
 import { Button } from "./component/ui/button";
+import UserGameDetails from "./component/UserGameDetails";
 
 // -------------------------------------------------------------------------------------------------
 
@@ -182,6 +183,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/tictactoe/:GameID" element={<Game />} />
             <Route path="/mygames" element={<MyGames />} />
+            <Route path="/mygames/:id" element={<UserGameDetails />} />
             <Route
               path="/login"
               element={

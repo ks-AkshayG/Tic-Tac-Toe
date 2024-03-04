@@ -30,10 +30,11 @@ export type GetDataResponceType = {
   drawCountState: number;
   currentTurn: string;
   winCharacter: string;
-  user_activity: {
+  userActivity: {
     user_name: string
     user_email: string
     character: string
+    index: number
   }[]
 };
 
@@ -71,7 +72,7 @@ const Home = () => {
         drawCountState: 9,
         currentTurn: "Current Turn - O",
         winCharacter: "",
-        user_activity: []
+        useActivity: []
       })
       .select()
       .single();
