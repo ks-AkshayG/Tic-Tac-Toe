@@ -1,8 +1,8 @@
 import { Button } from "./ui/button"
 
 type SingleSquareBoardProps = {
-  onClick: () => void  
-  onDoubleClick: () => void
+  onClick?: () => void  
+  onDoubleClick?: () => void
   value: string
 }
 

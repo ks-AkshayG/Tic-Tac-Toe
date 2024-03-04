@@ -3,6 +3,7 @@ import { userDataAtom } from "@/constants/JotaiAtoms";
 import { useAtom } from "jotai";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/component/ui/button";
 import {
   Table,
   TableHeader,
@@ -12,19 +13,13 @@ import {
   TableCell,
 } from "@/component/ui/table";
 
-type userRecordsType = {
+type UserRecordsType = {
   id: number;
   created_at: string;
   user_name: string;
   user_email: string;
   game_state: Array<string>;
   game_id: number;
-  // user_states: {
-  //   user_name: string;
-  //   user_email: string;
-  //   character: string;
-  //   index: number;
-  // }[];
   user_states: string;
   character: string;
   winner: string;
@@ -49,7 +44,7 @@ const MyGames = () => {
 
     // console.log('supares', supares);
 
-    return supares.data as userRecordsType;
+    return supares.data as UserRecordsType;
   };
 
   const { data } = useQuery("get-game-records", handleUserRecords, {});
@@ -62,7 +57,7 @@ const MyGames = () => {
       <Table className="w-[70vw] border border-black">
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">Username</TableHead>
+            <TableHead className="text-center">You</TableHead>
             <TableHead className="text-center">Opponent</TableHead>
             <TableHead className="text-center">Winner</TableHead>
             <TableHead className="text-center">Draw</TableHead>
@@ -118,7 +113,8 @@ const MyGames = () => {
                   <TableCell>-</TableCell>
                 )}
 
-                <TableCell><button onClick={() => handleExplore(user.id)} className=" border border-zinc-400 py-1 px-3 rounded-sm">Explore</button></TableCell>
+                <TableCell><Button onClick={() => handleExplore(user.id)} variant={"ghost"} >Explore</Button></TableCell>
+
               </TableRow>
             );
           })}
