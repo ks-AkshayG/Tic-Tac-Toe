@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Supabase } from "@/config/supabase";
 import { userDataAtom } from "@/constants/JotaiAtoms";
 import { useAtom } from "jotai";
@@ -28,13 +29,83 @@ type UserRecordsType = {
 
 const MyGames = () => {
   const [userData] = useAtom(userDataAtom);
+  const [filter, setFilter] = useState<"all" | "win" | "Loss" | "Draw">("all");
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
+  /**
+   * Function to handle the navigation to the perticular game detail
+   */
   const handleExplore = (id: number) => {
-    navigate(`${id}`)
-  }
+    navigate(`${id}`);
+  };
 
+  /**
+   * Function to set the filter type
+   */
+  const handleFilterClick = (filterType: "all" | "win" | "Loss" | "Draw") => {
+    setFilter(filterType);
+  };
+
+  /**
+   * Function for refilter all data
+   */
+  const handleFilterAllData = () => {
+    if (data === undefined) return;
+
+    // console.log(data)
+    return data;
+  };
+
+  /**
+   * Function for filter win data
+   */
+  const handleFilterWinData = () => {
+    if (data === undefined) return;
+
+    const winner = data.filter((user) => {
+      return user.character === user.win_character;
+    });
+
+    console.log(winner);
+
+    return winner;
+  };
+
+  /**
+   * Function for filter to Draw data
+   */
+  const handleFilterDrawData = () => {
+    if (data === undefined) return;
+
+    const Draw = data.filter((user) => {
+      return user.winner === "Match Draw";
+    });
+    console.log(Draw);
+
+    return Draw;
+  };
+
+  /**
+   * Function for filter loss data
+   */
+  const handleFilterLossData = () => {
+    if (data === undefined) return;
+
+    const Loss = data.filter((user) => {
+      return (
+        user.winner !== "Match Draw" && user.character !== user.win_character
+      );
+    });
+
+    console.log(Loss);
+
+    return Loss;
+  };
+
+  /**
+   * Query for get user's all matches
+   */
   const handleUserRecords = async () => {
     if (userData === undefined) return;
 
@@ -50,10 +121,48 @@ const MyGames = () => {
   const { data } = useQuery("get-game-records", handleUserRecords, {});
 
   // console.log('Data', data)
-  console.log(data);
+
+  /**
+   * Function for handle the type of filter
+   */
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+
+    switch (filter) {
+      case "win":
+        return handleFilterWinData();
+
+      case "Draw":
+        return handleFilterDrawData();
+
+      case "Loss":
+        return handleFilterLossData();
+
+      case "all":
+        return handleFilterAllData();
+    }
+  }, [data, filter]);
 
   return (
-    <div className="w-full flex justify-center mt-3">
+    <div className="w-full flex justify-center items-center flex-col mt-3">
+      {/* Types of filter */}
+      <div className="w-[70vw] flex flex-row items-center my-5">
+        <div className="text-[30px]">Filters:</div>
+        <div className="mx-4">
+          <Button onClick={() => handleFilterClick("all")}>All</Button>
+        </div>
+        <div className="mx-4">
+          <Button onClick={() => handleFilterClick("win")}>Win</Button>
+        </div>
+        <div className="mx-4">
+          <Button onClick={() => handleFilterClick("Draw")}>Draw</Button>
+        </div>
+        <div className="mx-4">
+          <Button onClick={() => handleFilterClick("Loss")}>Loss</Button>
+        </div>
+      </div>
+
+      {/* Table of user's match contents */}
       <Table className="w-[70vw] border border-black">
         <TableHeader>
           <TableRow>
@@ -66,9 +175,7 @@ const MyGames = () => {
         </TableHeader>
 
         <TableBody>
-          {data?.map((user) => {
-            // const userState = JSON.parse(user.user_states)
-
+          {filteredData?.map((user) => {
             return (
               <TableRow key={user.id}>
                 <TableCell>{user.user_name}</TableCell>
@@ -113,8 +220,14 @@ const MyGames = () => {
                   <TableCell>-</TableCell>
                 )}
 
-                <TableCell><Button onClick={() => handleExplore(user.id)} variant={"ghost"} >Explore</Button></TableCell>
-
+                <TableCell>
+                  <Button
+                    onClick={() => handleExplore(user.id)}
+                    variant={"ghost"}
+                  >
+                    Explore
+                  </Button>
+                </TableCell>
               </TableRow>
             );
           })}
